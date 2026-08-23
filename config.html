@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Détail config — ConfigPC</title>
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 <header class="site">
-  <a class="logo" href="index.html"><span class="mark">🖥️</span>Config<span>PC</span></a>
+  <a class="logo" href="index.html"><img class="logo-img" src="logo.png" alt="ConfigPC">Config<span>PC</span></a>
   <div class="tag">Configs mises à jour régulièrement</div>
 </header>
 
@@ -21,6 +21,7 @@
   © <span id="year"></span> ConfigPC — <a href="index.html">Accueil</a>
 </footer>
 
+<script src="ui.js?v=4"></script>
 <script>
   const s = document.createElement('script');
   s.src = 'data.js?t=' + Date.now();
@@ -31,34 +32,19 @@
 
   function initConfig() {
     document.getElementById("year").textContent = new Date().getFullYear();
-
-    const ICONS = {
-      "CPU":"🧠","GPU":"🎮","RAM":"🧩","Stockage":"💾","Carte mère":"🔌",
-      "Alimentation":"⚡","Boîtier":"📦","Refroidissement":"❄️","Écran":"🖥️"
-    };
-    const STOCK = {
-      ok:  { txt:"En stock",     cls:"stock-ok"  },
-      low: { txt:"Stock faible", cls:"stock-low" },
-      out: { txt:"Épuisé",       cls:"stock-out" }
-    };
-
+    const STOCK = { ok:{txt:"En stock",cls:"stock-ok"}, low:{txt:"Stock faible",cls:"stock-low"}, out:{txt:"Épuisé",cls:"stock-out"} };
     const params = new URLSearchParams(location.search);
     const cfg = CONFIGS.find(c => c.id === params.get("id"));
     const content = document.getElementById("content");
 
     function offerRow(offer, isBest) {
       const total = offerTotal(offer);
-      const flag = offer.country ? offer.country + " " : "";
+      const flag = flagSVG(offer.country);
       const portTxt = offer.shipping > 0 ? `+ ${offer.shipping}€ port` : "port offert";
-      const stock = offer.stock && STOCK[offer.stock]
-        ? `<span class="stock-badge ${STOCK[offer.stock].cls}">${STOCK[offer.stock].txt}</span>` : "";
-      const promo = (offer.promo && offer.promo.active)
-        ? `<span class="promo-badge">🔥 Promo${offer.promo.oldPrice ? " −"+(offer.promo.oldPrice - offer.price)+"€" : ""}</span>` : "";
-      const oldPrice = (offer.promo && offer.promo.active && offer.promo.oldPrice)
-        ? `<span class="old-price">${offer.promo.oldPrice}€</span>` : "";
-      const promoLine = (offer.promo && offer.promo.active)
-        ? `<div class="promo-line">${promo}<span class="countdown" data-end="${offer.promo.endDate||''}"></span></div>` : "";
-
+      const stock = offer.stock && STOCK[offer.stock] ? `<span class="stock-badge ${STOCK[offer.stock].cls}">${STOCK[offer.stock].txt}</span>` : "";
+      const promo = (offer.promo && offer.promo.active) ? `<span class="promo-badge">🔥 Promo${offer.promo.oldPrice ? " −"+(offer.promo.oldPrice - offer.price)+"€" : ""}</span>` : "";
+      const oldPrice = (offer.promo && offer.promo.active && offer.promo.oldPrice) ? `<span class="old-price">${offer.promo.oldPrice}€</span>` : "";
+      const promoLine = (offer.promo && offer.promo.active) ? `<div class="promo-line">${promo}<span class="countdown" data-end="${offer.promo.endDate||''}"></span></div>` : "";
       return `
         <div class="offer-line ${isBest ? "best" : ""}">
           <div class="offer-merchant">
@@ -74,22 +60,13 @@
         </div>`;
     }
 
-    if (!cfg) {
-      content.innerHTML = `<div class="error-box"><h2>Config introuvable</h2><p>Retourne à l'accueil.</p></div>`;
-      return;
-    }
+    if (!cfg) { content.innerHTML = `<div class="error-box"><h2>Config introuvable</h2><p>Retourne à l'accueil.</p></div>`; return; }
 
     const total = configTotal(cfg);
     content.innerHTML = `
-      <div class="config-header">
-        <div>
-          <h1>${cfg.name}</h1>
-          <div class="sub">${cfg.description || ""}</div>
-        </div>
-        <div class="total-wrap">
-          <div class="total-label">Total au meilleur prix</div>
-          <div class="config-total">${total}€</div>
-        </div>
+      <div class="config-header reveal">
+        <div><h1>${cfg.name}</h1><div class="sub">${cfg.description || ""}</div></div>
+        <div class="total-wrap"><div class="total-label">Total au meilleur prix</div><div class="config-total">${total}€</div></div>
       </div>
       <div class="section-label">Composants — cliquez sur "Comparer" pour voir tous les marchands</div>
       <div id="components"></div>`;
@@ -98,13 +75,13 @@
     cfg.components.forEach((comp, i) => {
       const offers = sortedOffers(comp);
       const best = offers[0];
-      const icon = ICONS[comp.category] || "🔧";
       const img = comp.image
-        ? `<img class="comp-img" src="${comp.image}" alt="${comp.name}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ico',textContent:'${icon}'}))">`
-        : `<div class="ico">${icon}</div>`;
+        ? `<img class="comp-img" src="${comp.image}" alt="${comp.name}" loading="lazy" onerror="this.outerHTML='<div class=&quot;ico&quot;>'+categoryIcon('${comp.category}')+'</div>'">`
+        : `<div class="ico">${categoryIcon(comp.category)}</div>`;
 
       const card = document.createElement("div");
-      card.className = "component-card";
+      card.className = "component-card reveal";
+      card.style.animationDelay = (0.05 * i) + "s";
       card.innerHTML = `
         <div class="component-head">
           <div class="component-info">
@@ -112,7 +89,7 @@
             <div>
               <div class="category">${comp.category}</div>
               <div class="name">${comp.name}</div>
-              <div class="best-inline">Dès <strong>${offerTotal(best)}€</strong> ${best.country||""} ${best.merchant} · ${offers.length} offre${offers.length>1?"s":""}</div>
+              <div class="best-inline">Dès <strong>${offerTotal(best)}€</strong> ${flagSVG(best.country)} ${best.merchant} · ${offers.length} offre${offers.length>1?"s":""}</div>
             </div>
           </div>
           <div class="head-right">
@@ -120,9 +97,7 @@
             ${offers.length>1 ? `<button class="compare-toggle">Comparer ▾</button>` : ""}
           </div>
         </div>
-        <div class="offers-panel">
-          ${offers.map((o,idx)=>offerRow(o, idx===0)).join("")}
-        </div>`;
+        <div class="offers-panel">${offers.map((o,idx)=>offerRow(o, idx===0)).join("")}</div>`;
       compsEl.appendChild(card);
     });
 
@@ -135,6 +110,7 @@
       });
     });
 
+    revealOnScroll();
     startCountdowns();
   }
 

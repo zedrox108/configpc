@@ -13,7 +13,7 @@
  *  --- Champs d'une OFFRE ---
  *   id        : identifiant unique sur TOUT le site (sert à la passerelle)
  *   merchant  : nom du marchand (ex: "Amazon", "Grosbill")
- *   country   : drapeau du pays de l'offre  🇫🇷 🇩🇪 🇪🇸 🇮🇹 ...  (facultatif)
+ *   country   : code pays de l'offre : "fr","de","es","it","gb","be","nl","pt","us"  (facultatif, affiche un vrai drapeau)
  *   price     : prix du produit en euros (nombre)
  *   shipping  : frais de port en euros (nombre, mets 0 si gratuit)
  *   url       : lien final vers la fiche produit
@@ -42,18 +42,18 @@ const CONFIGS = [
         image: "https://m.media-amazon.com/images/I/61yn-uMBAwL._AC_SL1000_.jpg",
         offers: [
           {
-            id: "cpu-1500-amazonde", merchant: "Amazon", country: "🇩🇪",
+            id: "cpu-1500-amazonde", merchant: "Amazon", country: "de",
             price: 199, shipping: 3, url: "https://www.amazon.de/",
             affiliate: true, affiliateUrl: "", stock: "ok",
             promo: { active: true, endDate: "2026-09-15T23:59", oldPrice: 239 }
           },
           {
-            id: "cpu-1500-grosbill", merchant: "Grosbill", country: "🇫🇷",
+            id: "cpu-1500-grosbill", merchant: "Grosbill", country: "fr",
             price: 229, shipping: 0, url: "https://www.grosbill.com/",
             affiliate: false, lockerUrl: "", stock: "ok"
           },
           {
-            id: "cpu-1500-ldlc", merchant: "LDLC", country: "🇫🇷",
+            id: "cpu-1500-ldlc", merchant: "LDLC", country: "fr",
             price: 235, shipping: 5, url: "https://www.ldlc.com/",
             affiliate: true, affiliateUrl: "", stock: "low"
           }
@@ -65,12 +65,12 @@ const CONFIGS = [
         image: "https://m.media-amazon.com/images/I/71bYd0mLZzL._AC_SL1500_.jpg",
         offers: [
           {
-            id: "gpu-1500-pccomp", merchant: "PC Componentes", country: "🇪🇸",
+            id: "gpu-1500-pccomp", merchant: "PC Componentes", country: "es",
             price: 549, shipping: 12, url: "https://www.pccomponentes.com/",
             affiliate: false, lockerUrl: "", stock: "ok"
           },
           {
-            id: "gpu-1500-grosbill", merchant: "Grosbill", country: "🇫🇷",
+            id: "gpu-1500-grosbill", merchant: "Grosbill", country: "fr",
             price: 599, shipping: 0, url: "https://www.grosbill.com/",
             affiliate: false, lockerUrl: "", stock: "ok"
           }
@@ -82,7 +82,7 @@ const CONFIGS = [
         image: "https://m.media-amazon.com/images/I/61vLNqM4EGL._AC_SL1500_.jpg",
         offers: [
           {
-            id: "ram-1500-ldlc", merchant: "LDLC", country: "🇫🇷",
+            id: "ram-1500-ldlc", merchant: "LDLC", country: "fr",
             price: 99, shipping: 5, url: "https://www.ldlc.com/",
             affiliate: true, affiliateUrl: "", stock: "ok"
           }
@@ -94,7 +94,7 @@ const CONFIGS = [
         image: "https://m.media-amazon.com/images/I/71OWesUAG5L._AC_SL1500_.jpg",
         offers: [
           {
-            id: "ssd-1500-amazon", merchant: "Amazon", country: "🇫🇷",
+            id: "ssd-1500-amazon", merchant: "Amazon", country: "fr",
             price: 69, shipping: 0, url: "https://www.amazon.fr/",
             affiliate: true, affiliateUrl: "", stock: "ok"
           }
@@ -106,7 +106,7 @@ const CONFIGS = [
         image: "https://m.media-amazon.com/images/I/81xk1i5FCUL._AC_SL1500_.jpg",
         offers: [
           {
-            id: "mb-1500-grosbill", merchant: "Grosbill", country: "🇫🇷",
+            id: "mb-1500-grosbill", merchant: "Grosbill", country: "fr",
             price: 149, shipping: 0, url: "https://www.grosbill.com/",
             affiliate: false, lockerUrl: "", stock: "ok"
           }
@@ -118,7 +118,7 @@ const CONFIGS = [
         image: "https://m.media-amazon.com/images/I/71yr5MnQ0AL._AC_SL1500_.jpg",
         offers: [
           {
-            id: "psu-1500-topachat", merchant: "TopAchat", country: "🇫🇷",
+            id: "psu-1500-topachat", merchant: "TopAchat", country: "fr",
             price: 79, shipping: 0, url: "https://www.topachat.com/",
             affiliate: false, lockerUrl: "", stock: "ok"
           }
@@ -130,7 +130,7 @@ const CONFIGS = [
         image: "https://m.media-amazon.com/images/I/71RYw+FvcHL._AC_SL1500_.jpg",
         offers: [
           {
-            id: "case-1500-grosbill", merchant: "Grosbill", country: "🇫🇷",
+            id: "case-1500-grosbill", merchant: "Grosbill", country: "fr",
             price: 69, shipping: 0, url: "https://www.grosbill.com/",
             affiliate: false, lockerUrl: "", stock: "ok"
           }
