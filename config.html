@@ -8,55 +8,150 @@
 </head>
 <body>
 <header class="site">
-  <a class="logo" href="index.html">Config<span>PC</span></a>
+  <a class="logo" href="index.html"><span class="mark">🖥️</span>Config<span>PC</span></a>
+  <div class="tag">Configs mises à jour régulièrement</div>
 </header>
 
 <main>
-  <a class="back-link" href="index.html">&larr; Toutes les configs</a>
+  <a class="back-link" href="index.html">← Toutes les configs</a>
   <div id="content"></div>
 </main>
 
+<footer class="site">
+  © <span id="year"></span> ConfigPC — <a href="index.html">Accueil</a>
+</footer>
+
 <script src="data.js"></script>
 <script>
+  document.getElementById("year").textContent = new Date().getFullYear();
+
+  const ICONS = {
+    "CPU":"🧠","GPU":"🎮","RAM":"🧩","Stockage":"💾","Carte mère":"🔌",
+    "Alimentation":"⚡","Boîtier":"📦","Refroidissement":"❄️","Écran":"🖥️"
+  };
+  const STOCK = {
+    ok:  { txt:"En stock",       cls:"stock-ok"  },
+    low: { txt:"Stock faible",   cls:"stock-low" },
+    out: { txt:"Épuisé",         cls:"stock-out" }
+  };
+
   const params = new URLSearchParams(location.search);
-  const id = params.get("id");
-  const cfg = CONFIGS.find(c => c.id === id);
+  const cfg = CONFIGS.find(c => c.id === params.get("id"));
   const content = document.getElementById("content");
 
-  if (!cfg) {
-    content.innerHTML = `<div class="error-box"><h2>Config introuvable</h2><p>Retourne à l'accueil pour voir les configs disponibles.</p></div>`;
-  } else {
-    content.innerHTML = `
-      <div class="config-header">
-        <h1>${cfg.name}</h1>
-        <div class="config-total">${cfg.price} €</div>
-      </div>
-      <p style="color:var(--muted)">${cfg.description || ""}</p>
-      <div id="components"></div>
-    `;
+  function offerRow(offer, isBest) {
+    const total = offerTotal(offer);
+    const flag = offer.country ? offer.country + " " : "";
+    const portTxt = offer.shipping > 0 ? `+ ${offer.shipping}€ port` : "port offert";
+    const stock = offer.stock && STOCK[offer.stock]
+      ? `<span class="stock-badge ${STOCK[offer.stock].cls}">${STOCK[offer.stock].txt}</span>` : "";
+    const promo = (offer.promo && offer.promo.active)
+      ? `<span class="promo-badge" data-end="${offer.promo.endDate || ""}">🔥 Promo${offer.promo.oldPrice ? " −"+(offer.promo.oldPrice - offer.price)+"€" : ""}</span>` : "";
+    const oldPrice = (offer.promo && offer.promo.active && offer.promo.oldPrice)
+      ? `<span class="old-price">${offer.promo.oldPrice}€</span>` : "";
 
-    const compsEl = document.getElementById("components");
-    cfg.components.forEach(comp => {
-      const row = document.createElement("div");
-      row.className = "component-row";
-
-      const offersHtml = comp.offers.map(offer => `
-        <div class="offer">
-          <span class="merchant">${offer.merchant}</span>
-          <span class="price">${offer.price} €</span>
+    return `
+      <div class="offer-line ${isBest ? "best" : ""}">
+        <div class="offer-merchant">
+          ${isBest ? '<span class="best-tag">Le moins cher</span>' : ''}
+          <span class="m-name">${flag}${offer.merchant}</span>
+          <span class="m-sub">${portTxt} ${stock}</span>
+          ${promo ? `<div class="promo-line">${promo}<span class="countdown" data-end="${offer.promo.endDate||''}"></span></div>` : ""}
+        </div>
+        <div class="offer-right">
+          <div class="offer-prices">${oldPrice}<span class="offer-total">${total}€</span></div>
           <a class="btn" href="gateway.html?ref=${encodeURIComponent(offer.id)}">Voir l'offre</a>
         </div>
-      `).join("");
+      </div>`;
+  }
 
-      row.innerHTML = `
-        <div class="component-info">
-          <div class="category">${comp.category}</div>
-          <div class="name">${comp.name}</div>
+  if (!cfg) {
+    content.innerHTML = `<div class="error-box"><h2>Config introuvable</h2><p>Retourne à l'accueil.</p></div>`;
+  } else {
+    const total = configTotal(cfg);
+    content.innerHTML = `
+      <div class="config-header">
+        <div>
+          <h1>${cfg.name}</h1>
+          <div class="sub">${cfg.description || ""}</div>
         </div>
-        <div class="offer-list">${offersHtml}</div>
-      `;
-      compsEl.appendChild(row);
+        <div class="total-wrap">
+          <div class="total-label">Total au meilleur prix</div>
+          <div class="config-total">${total}€</div>
+        </div>
+      </div>
+      <div class="section-label">Composants — cliquez pour comparer les marchands</div>
+      <div id="components"></div>`;
+
+    const compsEl = document.getElementById("components");
+    cfg.components.forEach((comp, i) => {
+      const offers = sortedOffers(comp);
+      const best = offers[0];
+      const others = offers.slice(1);
+      const icon = ICONS[comp.category] || "🔧";
+      const img = comp.image
+        ? `<img class="comp-img" src="${comp.image}" alt="${comp.name}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ico',textContent:'${icon}'}))">`
+        : `<div class="ico">${icon}</div>`;
+
+      const card = document.createElement("div");
+      card.className = "component-card";
+      card.innerHTML = `
+        <div class="component-head" data-toggle="${i}">
+          <div class="component-info">
+            ${img}
+            <div>
+              <div class="category">${comp.category}</div>
+              <div class="name">${comp.name}</div>
+              <div class="best-inline">Dès <strong>${offerTotal(best)}€</strong> ${best.country||""} ${best.merchant} · ${offers.length} offre${offers.length>1?"s":""}</div>
+            </div>
+          </div>
+          <div class="head-right">
+            ${offerRowInlineButton(best)}
+            ${others.length ? `<button class="compare-toggle" aria-label="Comparer">Comparer ▾</button>` : ""}
+          </div>
+        </div>
+        <div class="offers-panel" id="panel-${i}">
+          ${offers.map((o,idx)=>offerRow(o, idx===0)).join("")}
+        </div>`;
+      compsEl.appendChild(card);
     });
+
+    // ouverture / fermeture du panneau de comparaison
+    document.querySelectorAll(".compare-toggle").forEach((btn, i) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const panel = btn.closest(".component-card").querySelector(".offers-panel");
+        const open = panel.classList.toggle("open");
+        btn.textContent = open ? "Réduire ▴" : "Comparer ▾";
+      });
+    });
+
+    startCountdowns();
+  }
+
+  // petit bouton "Voir l'offre" direct sur la ligne repliée (meilleure offre)
+  function offerRowInlineButton(best) {
+    return `<a class="btn" href="gateway.html?ref=${encodeURIComponent(best.id)}">Voir l'offre</a>`;
+  }
+
+  // comptes à rebours des promos
+  function startCountdowns() {
+    const els = [...document.querySelectorAll(".countdown[data-end]")].filter(e => e.dataset.end);
+    if (!els.length) return;
+    function tick() {
+      const now = Date.now();
+      els.forEach(el => {
+        const end = new Date(el.dataset.end).getTime();
+        let diff = end - now;
+        if (isNaN(end)) { el.textContent = ""; return; }
+        if (diff <= 0) { el.textContent = "· promo terminée"; return; }
+        const d = Math.floor(diff/86400000); diff -= d*86400000;
+        const h = Math.floor(diff/3600000); diff -= h*3600000;
+        const m = Math.floor(diff/60000);
+        el.textContent = `· fin dans ${d}j ${h}h ${m}m`;
+      });
+    }
+    tick(); setInterval(tick, 30000);
   }
 </script>
 </body>
