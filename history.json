@@ -1,0 +1,314 @@
+{
+ "cpu-ldlcfr": {
+  "product": "AMD Ryzen 5 7600X",
+  "category": "CPU",
+  "merchant": "LDLC",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 229
+   }
+  ]
+ },
+ "cpu-grosbill": {
+  "product": "AMD Ryzen 5 7600X",
+  "category": "CPU",
+  "merchant": "Grosbill",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 235
+   }
+  ]
+ },
+ "cpu-alternatebe": {
+  "product": "AMD Ryzen 5 7600X",
+  "category": "CPU",
+  "merchant": "Alternate.be",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 237
+   }
+  ]
+ },
+ "cpu-digitec": {
+  "product": "AMD Ryzen 5 7600X",
+  "category": "CPU",
+  "merchant": "Digitec",
+  "currency": "CHF",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 245
+   }
+  ]
+ },
+ "cpu-ldlcch": {
+  "product": "AMD Ryzen 5 7600X",
+  "category": "CPU",
+  "merchant": "LDLC Suisse",
+  "currency": "CHF",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 260
+   }
+  ]
+ },
+ "gpu-pccompfr": {
+  "product": "NVIDIA GeForce RTX 4070",
+  "category": "GPU",
+  "merchant": "PcComponentes.fr",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 561
+   }
+  ]
+ },
+ "gpu-topachat": {
+  "product": "NVIDIA GeForce RTX 4070",
+  "category": "GPU",
+  "merchant": "TopAchat",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 579
+   }
+  ]
+ },
+ "gpu-coolbluebe": {
+  "product": "NVIDIA GeForce RTX 4070",
+  "category": "GPU",
+  "merchant": "Coolblue.be",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 589
+   }
+  ]
+ },
+ "gpu-digitec": {
+  "product": "NVIDIA GeForce RTX 4070",
+  "category": "GPU",
+  "merchant": "Digitec",
+  "currency": "CHF",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 619
+   }
+  ]
+ },
+ "ram-ldlcfr": {
+  "product": "Corsair Vengeance 32 Go DDR5 6000MHz",
+  "category": "RAM",
+  "merchant": "LDLC",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 104
+   }
+  ]
+ },
+ "ram-alternatebe": {
+  "product": "Corsair Vengeance 32 Go DDR5 6000MHz",
+  "category": "RAM",
+  "merchant": "Alternate.be",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 109
+   }
+  ]
+ },
+ "ram-brackch": {
+  "product": "Corsair Vengeance 32 Go DDR5 6000MHz",
+  "category": "RAM",
+  "merchant": "Brack.ch",
+  "currency": "CHF",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 112
+   }
+  ]
+ },
+ "ssd-amazonfr": {
+  "product": "SSD NVMe 1 To Gen4",
+  "category": "Stockage",
+  "merchant": "Amazon.fr",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 69
+   }
+  ]
+ },
+ "ssd-amazonbe": {
+  "product": "SSD NVMe 1 To Gen4",
+  "category": "Stockage",
+  "merchant": "Amazon.com.be",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 71
+   }
+  ]
+ },
+ "ssd-galaxusch": {
+  "product": "SSD NVMe 1 To Gen4",
+  "category": "Stockage",
+  "merchant": "Galaxus.ch",
+  "currency": "CHF",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 78
+   }
+  ]
+ },
+ "ssd-alifr": {
+  "product": "SSD NVMe 1 To Gen4",
+  "category": "Stockage",
+  "merchant": "AliExpress",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 52
+   }
+  ]
+ },
+ "ssd-alibe": {
+  "product": "SSD NVMe 1 To Gen4",
+  "category": "Stockage",
+  "merchant": "AliExpress",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 53
+   }
+  ]
+ },
+ "ssd-alich": {
+  "product": "SSD NVMe 1 To Gen4",
+  "category": "Stockage",
+  "merchant": "AliExpress",
+  "currency": "CHF",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 56
+   }
+  ]
+ },
+ "mb-grosbill": {
+  "product": "Carte mère B650 AM5",
+  "category": "Carte mère",
+  "merchant": "Grosbill",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 149
+   }
+  ]
+ },
+ "mb-vdbbe": {
+  "product": "Carte mère B650 AM5",
+  "category": "Carte mère",
+  "merchant": "Vanden Borre",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 155
+   }
+  ]
+ },
+ "mb-digitec": {
+  "product": "Carte mère B650 AM5",
+  "category": "Carte mère",
+  "merchant": "Digitec",
+  "currency": "CHF",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 168
+   }
+  ]
+ },
+ "psu-topachat": {
+  "product": "Alimentation 650W 80+ Gold",
+  "category": "Alimentation",
+  "merchant": "TopAchat",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 79
+   }
+  ]
+ },
+ "psu-alternatech": {
+  "product": "Alimentation 650W 80+ Gold",
+  "category": "Alimentation",
+  "merchant": "Alternate.ch",
+  "currency": "CHF",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 92
+   }
+  ]
+ },
+ "case-grosbill": {
+  "product": "Boîtier ATX ventilé",
+  "category": "Boîtier",
+  "merchant": "Grosbill",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 69
+   }
+  ]
+ },
+ "case-galaxusbe": {
+  "product": "Boîtier ATX ventilé",
+  "category": "Boîtier",
+  "merchant": "Galaxus.be",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 74
+   }
+  ]
+ },
+ "case-digitec": {
+  "product": "Boîtier ATX ventilé",
+  "category": "Boîtier",
+  "merchant": "Digitec",
+  "currency": "CHF",
+  "points": [
+   {
+    "d": "2026-08-23",
+    "p": 82
+   }
+  ]
+ }
+}

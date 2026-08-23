@@ -43,6 +43,15 @@ const MERCHANTS = {
   "alternate-ch":     { name:"Alternate.ch",  flag:"ch", cur:"CHF", shipsTo:["ch"], warn:"Dédouanement inclus + forfait 16 CHF par colis." },
   "interdiscount-ch": { name:"Interdiscount", flag:"ch", cur:"CHF", shipsTo:["ch"] },
 
+
+  /* ---- ALIEXPRESS (marketplace mondiale, livre dans les 3 pays) ---- */
+  "aliexpress-fr":  { name:"AliExpress", flag:"fr", cur:"EUR", shipsTo:["fr"],
+                      warn:"Garantie et retours compliqués (SAV en Chine) — méfiance sur les contrefaçons (RAM, SSD, cartes graphiques). Au-delà de 150 €, des droits de douane peuvent s'ajouter." },
+  "aliexpress-be":  { name:"AliExpress", flag:"be", cur:"EUR", shipsTo:["be"],
+                      warn:"Garantie et retours compliqués (SAV en Chine) — méfiance sur les contrefaçons. Au-delà de 150 €, des droits de douane peuvent s'ajouter." },
+  "aliexpress-ch":  { name:"AliExpress", flag:"ch", cur:"CHF", shipsTo:["ch"],
+                      warn:"Hors UE : TVA suisse et frais de dédouanement à l'import. Garantie et retours compliqués (SAV en Chine)." },
+
   /* ---- Amazon UE livrant en Suisse (il n'existe pas d'amazon.ch) ---- */
   "amazon-de-ch":   { name:"Amazon.de",  flag:"de", cur:"EUR", shipsTo:["ch"], warn:"Hors UE : douane et TVA suisse ajoutées au paiement." },
   "amazon-fr-ch":   { name:"Amazon.fr",  flag:"fr", cur:"EUR", shipsTo:["ch"], warn:"Hors UE : douane et TVA suisse ajoutées au paiement." }
@@ -82,7 +91,10 @@ const CONFIGS = [
       { category:"Stockage", name:"SSD NVMe 1 To Gen4", image:"", offers:[
         { id:"ssd-amazonfr", m:"amazon-fr", price:69, shipping:0, url:"https://www.amazon.fr/", affiliate:true, affiliateUrl:"", stock:"ok" },
         { id:"ssd-amazonbe", m:"amazon-be", price:71, shipping:0, url:"https://www.amazon.com.be/", affiliate:true, affiliateUrl:"", stock:"ok" },
-        { id:"ssd-galaxusch", m:"galaxus-ch", price:78, shipping:0, url:"https://www.galaxus.ch/", affiliate:false, lockerUrl:"", stock:"ok" }
+        { id:"ssd-galaxusch", m:"galaxus-ch", price:78, shipping:0, url:"https://www.galaxus.ch/", affiliate:false, lockerUrl:"", stock:"ok" },
+        { id:"ssd-alifr", m:"aliexpress-fr", price:52, shipping:0, url:"https://fr.aliexpress.com/", affiliate:true, affiliateUrl:"", stock:"ok" },
+        { id:"ssd-alibe", m:"aliexpress-be", price:53, shipping:0, url:"https://fr.aliexpress.com/", affiliate:true, affiliateUrl:"", stock:"ok" },
+        { id:"ssd-alich", m:"aliexpress-ch", price:56, shipping:0, url:"https://www.aliexpress.com/", affiliate:true, affiliateUrl:"", stock:"ok" }
       ]},
       { category:"Carte mère", name:"Carte mère B650 AM5", image:"", offers:[
         { id:"mb-grosbill", m:"grosbill-fr", price:149, shipping:0, url:"https://www.grosbill.com/", affiliate:false, lockerUrl:"", stock:"ok" },

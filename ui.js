@@ -106,3 +106,95 @@ function countryNotice() {
   if (getCountry() !== "ch") return "";
   return `<div class="notice-ch">🇨🇭 <span>Vous êtes en Suisse : seuls les marchands livrant en Suisse sont affichés. Un achat depuis un site de l'UE peut entraîner une TVA à l'import et des frais de dédouanement.</span></div>`;
 }
+
+/* ===================== Historique des prix ===================== */
+let HISTORY = null;
+
+function loadHistory() {
+  return fetch('history.json?t=' + Date.now())
+    .then(r => r.ok ? r.json() : {})
+    .then(h => { HISTORY = h; return h; })
+    .catch(() => { HISTORY = {}; return {}; });
+}
+
+/* Regroupe l'historique de plusieurs offres en une courbe "meilleur prix par jour" */
+function bestPriceSeries(offerIds, cur) {
+  if (!HISTORY) return [];
+  const byDate = {};
+  offerIds.forEach(id => {
+    const e = HISTORY[id];
+    if (!e || !e.points) return;
+    e.points.forEach(pt => {
+      let v = pt.p;
+      if (typeof convert === 'function' && e.currency && cur) v = convert(v, e.currency, cur);
+      if (byDate[pt.d] == null || v < byDate[pt.d]) byDate[pt.d] = v;
+    });
+  });
+  return Object.keys(byDate).sort().map(d => ({ d, p: byDate[d] }));
+}
+
+/* Dessine une courbe en SVG (aucune librairie, très léger) */
+function priceChartSVG(series, cur) {
+  if (!series || series.length === 0) {
+    return `<div class="chart-empty">Aucun relevé pour l'instant. Le suivi démarre dès la mise en ligne — la courbe se remplira jour après jour.</div>`;
+  }
+  if (series.length === 1) {
+    const p = series[0];
+    return `<div class="chart-empty">Premier relevé le ${frDate(p.d)} : <strong>${fmtMoney(p.p, cur)}</strong>.<br>
+      La courbe apparaîtra dès qu'il y aura plusieurs jours de suivi.</div>`;
+  }
+
+  const W = 640, H = 170, PL = 46, PR = 12, PT = 14, PB = 26;
+  const xs = series.map((_, i) => i);
+  const ys = series.map(s => s.p);
+  const min = Math.min(...ys), max = Math.max(...ys);
+  const span = (max - min) || Math.max(1, max * 0.05);
+  const lo = min - span * 0.15, hi = max + span * 0.15;
+
+  const X = i => PL + (i / (series.length - 1)) * (W - PL - PR);
+  const Y = v => PT + (1 - (v - lo) / (hi - lo)) * (H - PT - PB);
+
+  const line = series.map((s, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(s.p).toFixed(1)}`).join(' ');
+  const area = `${line} L${X(series.length - 1).toFixed(1)},${H - PB} L${X(0).toFixed(1)},${H - PB} Z`;
+
+  const first = series[0], last = series[series.length - 1];
+  const diff = last.p - first.p;
+  const pct = first.p ? (diff / first.p) * 100 : 0;
+  const trendCls = diff > 0 ? 'up' : (diff < 0 ? 'down' : 'flat');
+  const trendTxt = diff === 0 ? 'stable'
+    : `${diff > 0 ? '▲' : '▼'} ${fmtMoney(Math.abs(diff), cur)} (${Math.abs(pct).toFixed(1)} %)`;
+
+  // repères horizontaux
+  const gridVals = [hi, (hi + lo) / 2, lo];
+  const grid = gridVals.map(v =>
+    `<line x1="${PL}" y1="${Y(v).toFixed(1)}" x2="${W - PR}" y2="${Y(v).toFixed(1)}" class="grid"/>
+     <text x="${PL - 7}" y="${(Y(v) + 4).toFixed(1)}" class="ylab">${Math.round(v)}</text>`).join('');
+
+  const pts = series.map((s, i) =>
+    `<circle cx="${X(i).toFixed(1)}" cy="${Y(s.p).toFixed(1)}" r="2.6" class="pt"><title>${frDate(s.d)} — ${fmtMoney(s.p, cur)}</title></circle>`).join('');
+
+  return `
+    <div class="chart-head">
+      <div><span class="chart-label">Prix le plus bas</span>
+        <strong class="chart-now">${fmtMoney(last.p, cur)}</strong>
+        <span class="trend ${trendCls}">${trendTxt}</span></div>
+      <div class="chart-range">${frDate(first.d)} → ${frDate(last.d)} · ${series.length} relevés</div>
+    </div>
+    <svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
+      <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#5b8cff" stop-opacity=".38"/>
+        <stop offset="100%" stop-color="#5b8cff" stop-opacity="0"/>
+      </linearGradient></defs>
+      ${grid}
+      <path d="${area}" fill="url(#cg)"/>
+      <path d="${line}" class="curve"/>
+      ${pts}
+      <text x="${PL}" y="${H - 7}" class="xlab">${frDate(first.d)}</text>
+      <text x="${W - PR}" y="${H - 7}" class="xlab end">${frDate(last.d)}</text>
+    </svg>`;
+}
+
+function frDate(iso) {
+  const [y, m, d] = String(iso).split('-');
+  return `${d}/${m}/${String(y).slice(2)}`;
+}

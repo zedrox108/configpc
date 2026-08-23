@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Comparateur de prix — ConfigPC</title>
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
 <header class="site">
@@ -27,6 +27,10 @@
   <div class="cmp-tools">
     <input type="search" id="search" class="cmp-search" placeholder="Rechercher un composant (ex : RTX 4070)…" autocomplete="off">
     <select id="cat" class="cmp-select"><option value="">Toutes les catégories</option></select>
+    <select id="onlyprice" class="cmp-select">
+      <option value="1">Avec prix</option>
+      <option value="0">Tout le catalogue</option>
+    </select>
   </div>
 
   <div id="results"></div>
@@ -34,14 +38,18 @@
 
 <footer class="site">© <span id="year"></span> ConfigPC — <a href="index.html">Accueil</a></footer>
 
-<script src="ui.js?v=8"></script>
+<script src="ui.js?v=10"></script>
 <script>
-  const sc = document.createElement('script');
-  sc.src = 'data.js?t=' + Date.now();
-  sc.onload = initCompare;
-  sc.onerror = () => document.getElementById('results').innerHTML =
-    '<div class="error-box"><h2>Erreur</h2><p>Impossible de charger le catalogue.</p></div>';
-  document.head.appendChild(sc);
+  function loadScript(src){ return new Promise((ok,ko)=>{
+    const s=document.createElement('script'); s.src=src+'?t='+Date.now();
+    s.onload=ok; s.onerror=ko; document.head.appendChild(s); }); }
+  const sc = { onerror:null };
+  Promise.all([loadScript('data.js'), loadScript('products.js')])
+    .then(()=>loadHistory()).then(initCompare)
+    .catch(()=>{ document.getElementById('results').innerHTML =
+      '<div class="error-box"><h2>Erreur</h2><p>Impossible de charger le catalogue.</p></div>'; });
+  const _unused = () => {
+  };
 
   function initCompare(){
     document.getElementById("year").textContent = new Date().getFullYear();
@@ -50,13 +58,24 @@
 
     const STOCK = { ok:{txt:"En stock",cls:"stock-ok"}, low:{txt:"Stock faible",cls:"stock-low"}, out:{txt:"Épuisé",cls:"stock-out"} };
 
-    // liste unique de composants (dédoublonnés par nom)
+    // catalogue produits + composants issus des configs
     const items = [];
+    if (typeof PRODUCTS !== 'undefined') {
+      PRODUCTS.forEach(p => items.push({
+        name:p.name, category:p.category, spec:p.spec||'', brand:p.brand||'',
+        image:p.image||'', offers:(p.offers||[]).slice()
+      }));
+    }
     CONFIGS.forEach(cfg => cfg.components.forEach(comp => {
       let it = items.find(x => x.name === comp.name && x.category === comp.category);
-      if (!it) { it = { name:comp.name, category:comp.category, image:comp.image, offers:[] }; items.push(it); }
+      if (!it) { it = { name:comp.name, category:comp.category, spec:'', image:comp.image, offers:[] }; items.push(it); }
       comp.offers.forEach(o => { if (!it.offers.find(z => z.id === o.id)) it.offers.push(o); });
     }));
+    items.sort((a,b)=>{
+      const ao=sortedOffers(a).length>0, bo=sortedOffers(b).length>0;
+      if (ao!==bo) return ao?-1:1;
+      return a.category.localeCompare(b.category) || a.name.localeCompare(b.name);
+    });
 
     // catégories
     const catSel = document.getElementById("cat");
@@ -64,6 +83,18 @@
       const op=document.createElement("option"); op.value=c; op.textContent=c; catSel.appendChild(op);
     });
 
+    const ALIAS = {
+      "Stockage":"ssd nvme m2 disque dur sata stockage",
+      "GPU":"gpu carte graphique vga geforce radeon arc",
+      "CPU":"cpu processeur ryzen intel core",
+      "RAM":"ram memoire memoire vive ddr4 ddr5 barrette",
+      "Carte mère":"carte mere motherboard mobo chipset socket",
+      "Alimentation":"alimentation psu bloc watt",
+      "Boîtier":"boitier case tour",
+      "Refroidissement":"refroidissement ventirad watercooling aio radiateur",
+      "Ventilateur":"ventilateur fan ventilo rgb"
+    };
+    items.forEach(i => { i._s = (i.name+' '+i.category+' '+(i.spec||'')+' '+(ALIAS[i.category]||'')).toLowerCase(); });
     const search = document.getElementById("search");
     const results = document.getElementById("results");
 
@@ -94,11 +125,18 @@
     function render(){
       const q = search.value.trim().toLowerCase();
       const cat = catSel.value;
-      const list = items.filter(i =>
+      const onlyP = document.getElementById('onlyprice').value === '1';
+      let list = items.filter(i =>
         (!cat || i.category === cat) &&
-        (!q || i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q)));
+        (!onlyP || sortedOffers(i).length > 0) &&
+        (!q || i._s.includes(q)));
+      const totalFound = list.length;
+      const LIMIT = 60;
+      list = list.slice(0, LIMIT);
 
-      if (!list.length) { results.innerHTML = `<p style="color:var(--muted);text-align:center;padding:30px">Aucun composant trouvé.</p>`; return; }
+      if (!list.length) { results.innerHTML = `<p style="color:var(--muted);text-align:center;padding:30px">Aucun composant trouvé.${onlyP?'<br><small>Essayez « Tout le catalogue » pour voir les produits sans prix.</small>':''}</p>`; return; }
+      const moreNote = totalFound > LIMIT
+        ? `<p style="color:var(--muted);text-align:center;padding:14px">${totalFound} produits trouvés — les ${LIMIT} premiers sont affichés. Affinez votre recherche.</p>` : '';
 
       results.innerHTML = list.map(it => {
         const offers = sortedOffers(it);
@@ -106,10 +144,12 @@
           ? `<img class="comp-img" src="${it.image}" alt="" loading="lazy">`
           : `<div class="ico">${categoryIcon(it.category)}</div>`;
         if (!offers.length) return `
-          <div class="component-card unavailable">
+          <div class="component-card noprice">
             <div class="component-head"><div class="component-info">${img}
               <div><div class="category">${it.category}</div><div class="name">${it.name}</div>
-              <div class="best-inline">Aucun marchand ne livre dans votre pays</div></div></div></div>
+              ${it.spec?`<div class="spec-line">${it.spec}</div>`:''}
+              <div class="best-inline">${it.offers.length? 'Aucun marchand ne livre dans votre pays' : 'Prix pas encore renseigné'}</div>
+              </div></div></div>
           </div>`;
         return `
           <div class="component-card">
@@ -118,18 +158,41 @@
                 <div>
                   <div class="category">${it.category}</div>
                   <div class="name">${it.name}</div>
+                  ${it.spec?`<div class="spec-line">${it.spec}</div>`:''}
                   <div class="best-inline">Dès <strong>${fmtOffer(offers[0])}</strong> · ${offers.length} marchand${offers.length>1?'s':''}</div>
                 </div>
               </div>
+              <div class="head-right">
+                <button class="compare-toggle hist-btn" data-ids="${offers.map(o=>o.id).join(',')}">📈 Historique</button>
+              </div>
             </div>
+            <div class="chart-panel"></div>
             <div class="offers-panel open">${offers.map((o,i)=>offerLine(o,i===0)).join("")}</div>
           </div>`;
-      }).join("");
+      }).join("") + moreNote;
       startCountdowns();
+      bindHistory();
+    }
+
+    function bindHistory(){
+      document.querySelectorAll('.hist-btn').forEach(btn=>{
+        btn.addEventListener('click', e=>{
+          e.stopPropagation();
+          const panel = btn.closest('.component-card').querySelector('.chart-panel');
+          const open = panel.classList.toggle('open');
+          btn.textContent = open ? '📈 Masquer' : '📈 Historique';
+          if (open && !panel.dataset.done) {
+            const ids = btn.dataset.ids.split(',');
+            panel.innerHTML = priceChartSVG(bestPriceSeries(ids, countryCurrency()), countryCurrency());
+            panel.dataset.done = '1';
+          }
+        });
+      });
     }
 
     search.addEventListener("input", render);
     catSel.addEventListener("change", render);
+    document.getElementById('onlyprice').addEventListener('change', render);
     render();
   }
 

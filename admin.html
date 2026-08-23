@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta name="robots" content="noindex, nofollow">
 <title>Espace privé — ConfigPC</title>
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=10">
 <style>
   .admin-wrap { max-width: 860px; margin: 0 auto; }
   .adm-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
@@ -45,11 +45,14 @@
   <div class="admin-wrap" id="app"></div>
 </main>
 
-<script src="ui.js?v=8"></script>
+<script src="ui.js?v=10"></script>
 <script>
+const pj = document.createElement('script');
+pj.src = 'products.js?t=' + Date.now();
+document.head.appendChild(pj);
 const sc = document.createElement('script');
 sc.src = 'data.js?t=' + Date.now();
-sc.onload = boot;
+sc.onload = () => setTimeout(boot, 120);
 sc.onerror = () => document.getElementById('app').innerHTML = '<div class="error-box">Impossible de charger data.js</div>';
 document.head.appendChild(sc);
 
@@ -66,7 +69,10 @@ function render(){
   app.innerHTML = `
     <div class="adm-card">
       <h3>🔒 Ton espace privé</h3>
-      <p class="steps">Cette page ne sert qu'à <b>fabriquer</b> tes configs. Rien n'est publié tant que
+      <p class="steps">Le catalogue contient <b id="nbprod">…</b> produits. Pour ajouter un prix
+      à un produit du catalogue, ouvre <b>products.js</b> sur GitHub et complète son champ
+      <code>offers</code> — ou utilise le générateur d'offre ci-dessous.<br><br>
+      Cette page ne sert qu'à <b>fabriquer</b> tes configs. Rien n'est publié tant que
       tu n'as pas collé le résultat sur GitHub — et seul ton compte GitHub peut le faire.
       Tu peux l'utiliser depuis ton PC comme depuis ton téléphone.</p>
     </div>
@@ -75,6 +81,21 @@ function render(){
       <div class="blk-head"><h3 style="margin:0">Mes configs (${DATA.length})</h3>
         <button class="btn-mini" onclick="addConfig()">+ Nouvelle config</button></div>
       <div id="configs"></div>
+    </div>
+
+    <div class="adm-card">
+      <h3>➕ Ajouter un prix à un produit du catalogue</h3>
+      <div class="field"><label>Produit</label>
+        <select id="psel"></select></div>
+      <div class="row">
+        <div class="field" style="flex:2"><label>Boutique</label><select id="pm"></select></div>
+        <div class="field"><label>Prix</label><input type="number" step="0.01" id="pp" value="0"></div>
+        <div class="field"><label>Port</label><input type="number" step="0.01" id="ps" value="0"></div>
+      </div>
+      <div class="field"><label>Lien du produit</label><input id="pu" placeholder="https://..."></div>
+      <button class="btn" onclick="genOffer()">Générer la ligne à coller</button>
+      <textarea class="out" id="pout" readonly style="height:80px;margin-top:10px"></textarea>
+      <p class="steps" id="phint"></p>
     </div>
 
     <div class="adm-card">
@@ -91,6 +112,7 @@ function render(){
     </div>`;
 
   document.getElementById('ghlink').href = 'https://github.com/zedrox108/configpc/edit/main/data.js';
+  fillProductTools();
   renderConfigs();
   updateOutput();
 }
@@ -223,6 +245,32 @@ function downloadOut(){
   msg('💾 Fichier téléchargé — envoie-le sur GitHub à la place de l\'ancien.','ok-msg');
 }
 function msg(t,c){ document.getElementById('copymsg').innerHTML = `<div class="${c}">${t}</div>`; }
+
+function fillProductTools(){
+  const sel = document.getElementById('psel'); if (!sel) return;
+  const ms = document.getElementById('pm');
+  if (typeof PRODUCTS === 'undefined') { sel.innerHTML='<option>products.js non chargé</option>'; return; }
+  document.getElementById('nbprod').textContent = PRODUCTS.length;
+  sel.innerHTML = PRODUCTS.map(p=>`<option value="${p.id}">${p.category} — ${p.name}</option>`).join('');
+  ms.innerHTML = Object.keys(MERCHANTS).map(k=>{
+    const M=MERCHANTS[k];
+    return `<option value="${k}">${M.name} (${M.shipsTo.join('/').toUpperCase()}) — ${M.cur}</option>`;
+  }).join('');
+}
+function genOffer(){
+  const pid=document.getElementById('psel').value;
+  const m=document.getElementById('pm').value;
+  const price=parseFloat(document.getElementById('pp').value)||0;
+  const ship=parseFloat(document.getElementById('ps').value)||0;
+  const url=document.getElementById('pu').value.trim();
+  const oid=pid.slice(0,26)+'-'+m;
+  const line=`{ id:"${oid}", m:"${m}", price:${price}, shipping:${ship}, url:"${url}", stock:"ok" }`;
+  document.getElementById('pout').value=line;
+  document.getElementById('phint').innerHTML =
+    `Ouvre <b>products.js</b> sur GitHub, trouve <code>id: "${pid}"</code>, et colle cette ligne entre les crochets de son <code>offers: []</code>.
+     <a href="https://github.com/zedrox108/configpc/edit/main/products.js" target="_blank" rel="noopener">Ouvrir products.js →</a>`;
+  navigator.clipboard.writeText(line).catch(()=>{});
+}
 
 /* on garde le texte source de data.js pour régénérer le fichier complet */
 fetch('data.js?t='+Date.now()).then(r=>r.text()).then(t=>{ window.__DATAJS_SRC__=t; updateOutput(); }).catch(()=>{});

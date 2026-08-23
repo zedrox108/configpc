@@ -82,3 +82,51 @@ facilement transposée en tables de base de données le moment venu, donc rien �
    `lockerUrl`.
 4. Héberge le site (Netlify/Vercel en gratuit fonctionnent très bien pour un site statique).
 5. Quand le catalogue grossit, on migre vers une vraie base de données + interface d'admin.
+
+---
+
+# 🤖 Le bot de suivi des prix
+
+## Ce qu'il fait
+
+Un programme (`scripts/snapshot.js`) enregistre chaque jour le prix de toutes tes offres
+dans `history.json`. Le site lit ce fichier et dessine les courbes de prix
+(bouton « 📈 Historique » sur la page Comparateur).
+
+GitHub exécute ce programme automatiquement **tous les jours à 6h UTC**, gratuitement,
+sans serveur — c'est le fichier `.github/workflows/prices.yml`.
+
+## Activation (à faire une seule fois)
+
+1. Envoie sur GitHub le dossier `.github/workflows/` et le dossier `scripts/`
+   (garde bien la structure des dossiers).
+2. Sur GitHub, onglet **Settings** → **Actions** → **General** → tout en bas,
+   section « Workflow permissions » : coche **Read and write permissions** → **Save**.
+   (Sans ça, le bot ne pourra pas enregistrer l'historique.)
+3. Onglet **Actions** → si GitHub demande d'activer les workflows, accepte.
+4. Pour tester tout de suite : Actions → « Relevé quotidien des prix » → **Run workflow**.
+
+## Points importants
+
+- **L'historique démarre aujourd'hui.** Il est impossible de récupérer les prix passés :
+  cette donnée n'existe que si on l'a enregistrée. Plus tôt le bot tourne, plus tôt les
+  courbes ont de la valeur.
+- **GitHub désactive les tâches planifiées après 60 jours sans activité sur le dépôt.**
+  Si tu ne touches à rien pendant 2 mois, va dans l'onglet Actions et réactive le workflow.
+- Aujourd'hui le bot enregistre les prix **que tu as saisis** dans `data.js`.
+  Il ne va pas encore les chercher tout seul chez les marchands (voir ci-dessous).
+
+## Et la récupération automatique des prix ?
+
+C'est l'étape suivante, et la plus difficile. Deux voies possibles :
+
+1. **Les flux produits des programmes d'affiliation** (voie propre et légale).
+   AliExpress est accessible sans condition. Amazon exige 3 ventes pour ouvrir l'accès
+   à son API, puis 10 ventes tous les 30 jours pour la conserver. Awin / Effiliation
+   demandent une validation de ton site.
+2. **Le scraping** (robot qui lit les pages des marchands) : fragile, souvent contraire
+   aux conditions d'utilisation des sites, et activement bloqué par Amazon.
+   Déconseillé comme fondation.
+
+C'est pour ça que l'ordre logique reste : lancer le site → obtenir les premières ventes →
+débloquer les flux d'affiliation → brancher l'automatisation sur le bot déjà en place.
