@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ConfigPC — Les meilleures configs PC du moment</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 <header class="site">
@@ -30,29 +30,37 @@
   © <span id="year"></span> ConfigPC — <a href="#">Mentions légales</a>
 </footer>
 
-<script src="data.js"></script>
 <script>
-  document.getElementById("year").textContent = new Date().getFullYear();
-  const list = document.getElementById("configs-list");
-  CONFIGS.forEach(cfg => {
-    const total = configTotal(cfg);
-    const nb = cfg.components.length;
-    const a = document.createElement("a");
-    a.className = "config-card";
-    a.href = "config.html?id=" + encodeURIComponent(cfg.id);
-    a.innerHTML = `
-      <div>
-        <h2>${cfg.name}</h2>
-        <p>${cfg.description || ""}</p>
-        <div class="cta">${nb} composants · comparés au meilleur prix →</div>
-      </div>
-      <div class="price-wrap">
-        <div class="price-label">Total dès</div>
-        <div class="config-price">${total} €</div>
-      </div>
-    `;
-    list.appendChild(a);
-  });
+  // Chargement du catalogue en évitant le cache (recharge toujours la dernière version)
+  const s = document.createElement('script');
+  s.src = 'data.js?t=' + Date.now();
+  s.onload = initAccueil;
+  s.onerror = () => { document.getElementById('configs-list').innerHTML =
+    '<p style="color:#8b93a4">Impossible de charger le catalogue (data.js).</p>'; };
+  document.head.appendChild(s);
+
+  function initAccueil() {
+    document.getElementById("year").textContent = new Date().getFullYear();
+    const list = document.getElementById("configs-list");
+    CONFIGS.forEach(cfg => {
+      const total = configTotal(cfg);
+      const nb = cfg.components.length;
+      const a = document.createElement("a");
+      a.className = "config-card";
+      a.href = "config.html?id=" + encodeURIComponent(cfg.id);
+      a.innerHTML = `
+        <div>
+          <h2>${cfg.name}</h2>
+          <p>${cfg.description || ""}</p>
+          <div class="cta">${nb} composants · comparés au meilleur prix →</div>
+        </div>
+        <div class="price-wrap">
+          <div class="price-label">Total dès</div>
+          <div class="config-price">${total} €</div>
+        </div>`;
+      list.appendChild(a);
+    });
+  }
 </script>
 </body>
 </html>
