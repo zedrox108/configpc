@@ -8,11 +8,15 @@
 <meta http-equiv="Expires" content="0">
 
 <title>Détail config — ConfigPC</title>
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 <header class="site">
   <a class="logo" href="index.html"><img class="logo-img" src="logo.png" alt="ConfigPC">Config<span>PC</span></a>
+  <nav class="mainnav">
+    <a href="index.html" class="navlink" data-p="index">Configs</a>
+    <a href="compare.html" class="navlink" data-p="compare">Comparateur</a>
+  </nav>
   <div class="tag">Configs mises à jour régulièrement</div>
 </header>
 
@@ -25,8 +29,7 @@
   © <span id="year"></span> ConfigPC — <a href="index.html">Accueil</a>
 </footer>
 
-<script src="ui.js?v=7"></script>
-<script src="merchants.js?v=7"></script>
+<script src="ui.js?v=8"></script>
 <script>
   const s = document.createElement('script');
   s.src = 'data.js?t=' + Date.now();
@@ -44,13 +47,13 @@
     const content = document.getElementById("content");
 
     function offerRow(offer, isBest) {
-      const total = offerTotal(offer);
+      const totalTxt = fmtOffer(offer);
       const M = offerMerchant(offer);
       const flag = flagSVG(M.flag);
       const portTxt = offer.shipping > 0 ? `+ ${offer.shipping}€ port` : "port offert";
       const stock = offer.stock && STOCK[offer.stock] ? `<span class="stock-badge ${STOCK[offer.stock].cls}">${STOCK[offer.stock].txt}</span>` : "";
-      const promo = (offer.promo && offer.promo.active) ? `<span class="promo-badge">🔥 Promo${offer.promo.oldPrice ? " −"+(offer.promo.oldPrice - offer.price)+"€" : ""}</span>` : "";
-      const oldPrice = (offer.promo && offer.promo.active && offer.promo.oldPrice) ? `<span class="old-price">${offer.promo.oldPrice}€</span>` : "";
+      const promo = (offer.promo && offer.promo.active) ? `<span class="promo-badge">🔥 Promo${offer.promo.oldPrice ? " −"+fmtMoney(offer.promo.oldPrice - offer.price, offerCurrency(offer)) : ""}</span>` : "";
+      const oldPrice = (offer.promo && offer.promo.active && offer.promo.oldPrice) ? `<span class="old-price">${fmtMoney(offer.promo.oldPrice, offerCurrency(offer))}</span>` : "";
       const promoLine = (offer.promo && offer.promo.active) ? `<div class="promo-line">${promo}<span class="countdown" data-end="${offer.promo.endDate||''}"></span></div>` : "";
       return `
         <div class="offer-line ${isBest ? "best" : ""}">
@@ -62,7 +65,7 @@
             ${M.warn ? `<div class="merchant-warn">⚠ ${M.warn}</div>` : ""}
           </div>
           <div class="offer-right">
-            <div class="offer-prices">${oldPrice}<span class="offer-total">${total}€</span></div>
+            <div class="offer-prices">${oldPrice}<span class="offer-total">${totalTxt}</span></div>
             <a class="btn" href="gateway.html?ref=${encodeURIComponent(offer.id)}">Voir l'offre</a>
           </div>
         </div>`;
@@ -70,12 +73,12 @@
 
     if (!cfg) { content.innerHTML = `<div class="error-box"><h2>Config introuvable</h2><p>Retourne à l'accueil.</p></div>`; return; }
 
-    const total = configTotal(cfg);
+    const totalCfg = configTotalText(cfg);
     content.innerHTML = `
       ${countryNotice()}
       <div class="config-header reveal">
         <div><h1>${cfg.name}</h1><div class="sub">${cfg.description || ""}</div></div>
-        <div class="total-wrap"><div class="total-label">Total au meilleur prix</div><div class="config-total">${total}€</div></div>
+        <div class="total-wrap"><div class="total-label">Total au meilleur prix</div><div class="config-total">${totalCfg}</div></div>
       </div>
       <div class="section-label">Composants — cliquez sur "Comparer" pour voir tous les marchands</div>
       <div id="components"></div>`;
@@ -115,7 +118,7 @@
             <div>
               <div class="category">${comp.category}</div>
               <div class="name">${comp.name}</div>
-              <div class="best-inline">Dès <strong>${offerTotal(best)}€</strong> ${flagSVG(offerMerchant(best).flag)} ${offerMerchant(best).name} · ${offers.length} offre${offers.length>1?"s":""}</div>
+              <div class="best-inline">Dès <strong>${fmtOffer(best)}</strong> ${flagSVG(offerMerchant(best).flag)} ${offerMerchant(best).name} · ${offers.length} offre${offers.length>1?"s":""}</div>
             </div>
           </div>
           <div class="head-right">

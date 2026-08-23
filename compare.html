@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Comparateur de prix — ConfigPC</title>
+<link rel="stylesheet" href="style.css?v=8">
+</head>
+<body>
+<header class="site">
+  <a class="logo" href="index.html"><img class="logo-img" src="logo.png" alt="ConfigPC">Config<span>PC</span></a>
+  <nav class="mainnav">
+    <a href="index.html" class="navlink">Configs</a>
+    <a href="compare.html" class="navlink active">Comparateur</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero" style="padding:20px 0 26px">
+    <h1 style="font-size:clamp(1.6rem,4vw,2.3rem)">Comparateur de <span class="grad">prix</span></h1>
+    <p>Tous les composants, tous les marchands disponibles dans votre pays, du moins cher au plus cher — frais de port inclus.</p>
+  </section>
+
+  <div id="notice"></div>
+
+  <div class="cmp-tools">
+    <input type="search" id="search" class="cmp-search" placeholder="Rechercher un composant (ex : RTX 4070)…" autocomplete="off">
+    <select id="cat" class="cmp-select"><option value="">Toutes les catégories</option></select>
+  </div>
+
+  <div id="results"></div>
+</main>
+
+<footer class="site">© <span id="year"></span> ConfigPC — <a href="index.html">Accueil</a></footer>
+
+<script src="ui.js?v=8"></script>
+<script>
+  const sc = document.createElement('script');
+  sc.src = 'data.js?t=' + Date.now();
+  sc.onload = initCompare;
+  sc.onerror = () => document.getElementById('results').innerHTML =
+    '<div class="error-box"><h2>Erreur</h2><p>Impossible de charger le catalogue.</p></div>';
+  document.head.appendChild(sc);
+
+  function initCompare(){
+    document.getElementById("year").textContent = new Date().getFullYear();
+    initCountrySelector();
+    document.getElementById("notice").innerHTML = countryNotice();
+
+    const STOCK = { ok:{txt:"En stock",cls:"stock-ok"}, low:{txt:"Stock faible",cls:"stock-low"}, out:{txt:"Épuisé",cls:"stock-out"} };
+
+    // liste unique de composants (dédoublonnés par nom)
+    const items = [];
+    CONFIGS.forEach(cfg => cfg.components.forEach(comp => {
+      let it = items.find(x => x.name === comp.name && x.category === comp.category);
+      if (!it) { it = { name:comp.name, category:comp.category, image:comp.image, offers:[] }; items.push(it); }
+      comp.offers.forEach(o => { if (!it.offers.find(z => z.id === o.id)) it.offers.push(o); });
+    }));
+
+    // catégories
+    const catSel = document.getElementById("cat");
+    [...new Set(items.map(i=>i.category))].forEach(c=>{
+      const op=document.createElement("option"); op.value=c; op.textContent=c; catSel.appendChild(op);
+    });
+
+    const search = document.getElementById("search");
+    const results = document.getElementById("results");
+
+    function offerLine(o, isBest){
+      const M = offerMerchant(o);
+      const stock = o.stock && STOCK[o.stock] ? `<span class="stock-badge ${STOCK[o.stock].cls}">${STOCK[o.stock].txt}</span>` : "";
+      const port = o.shipping > 0 ? `+ ${fmtMoney(o.shipping, M.cur)} port` : "port offert";
+      const conv = offerIsForeignCurrency(o)
+        ? `<span class="conv">≈ ${fmtMoney(offerTotalIn(o), countryCurrency())}</span>` : "";
+      const promo = (o.promo && o.promo.active)
+        ? `<span class="promo-badge">🔥 Promo</span><span class="countdown" data-end="${o.promo.endDate||''}"></span>` : "";
+      return `
+        <div class="offer-line ${isBest?'best':''}">
+          <div class="offer-merchant">
+            ${isBest ? '<span class="best-tag">Le moins cher</span>' : ''}
+            <span class="m-name">${flagSVG(M.flag)}${M.name}</span>
+            <span class="m-sub">${port} ${stock}</span>
+            ${promo ? `<div class="promo-line">${promo}</div>` : ""}
+            ${M.warn ? `<div class="merchant-warn">⚠ ${M.warn}</div>` : ""}
+          </div>
+          <div class="offer-right">
+            <div class="offer-prices">${conv}<span class="offer-total">${fmtOffer(o)}</span></div>
+            <a class="btn" href="gateway.html?ref=${encodeURIComponent(o.id)}">Voir l'offre</a>
+          </div>
+        </div>`;
+    }
+
+    function render(){
+      const q = search.value.trim().toLowerCase();
+      const cat = catSel.value;
+      const list = items.filter(i =>
+        (!cat || i.category === cat) &&
+        (!q || i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q)));
+
+      if (!list.length) { results.innerHTML = `<p style="color:var(--muted);text-align:center;padding:30px">Aucun composant trouvé.</p>`; return; }
+
+      results.innerHTML = list.map(it => {
+        const offers = sortedOffers(it);
+        const img = it.image
+          ? `<img class="comp-img" src="${it.image}" alt="" loading="lazy">`
+          : `<div class="ico">${categoryIcon(it.category)}</div>`;
+        if (!offers.length) return `
+          <div class="component-card unavailable">
+            <div class="component-head"><div class="component-info">${img}
+              <div><div class="category">${it.category}</div><div class="name">${it.name}</div>
+              <div class="best-inline">Aucun marchand ne livre dans votre pays</div></div></div></div>
+          </div>`;
+        return `
+          <div class="component-card">
+            <div class="component-head">
+              <div class="component-info">${img}
+                <div>
+                  <div class="category">${it.category}</div>
+                  <div class="name">${it.name}</div>
+                  <div class="best-inline">Dès <strong>${fmtOffer(offers[0])}</strong> · ${offers.length} marchand${offers.length>1?'s':''}</div>
+                </div>
+              </div>
+            </div>
+            <div class="offers-panel open">${offers.map((o,i)=>offerLine(o,i===0)).join("")}</div>
+          </div>`;
+      }).join("");
+      startCountdowns();
+    }
+
+    search.addEventListener("input", render);
+    catSel.addEventListener("change", render);
+    render();
+  }
+
+  function startCountdowns(){
+    const els=[...document.querySelectorAll(".countdown[data-end]")].filter(e=>e.dataset.end);
+    if(!els.length) return;
+    function tick(){ const now=Date.now(); els.forEach(el=>{
+      const end=new Date(el.dataset.end).getTime(); let d=end-now;
+      if(isNaN(end)){el.textContent="";return;} if(d<=0){el.textContent="· terminée";return;}
+      const j=Math.floor(d/86400000); d-=j*86400000; const h=Math.floor(d/3600000);
+      el.textContent=`· fin dans ${j}j ${h}h`; }); }
+    tick(); setInterval(tick,60000);
+  }
+</script>
+</body>
+</html>

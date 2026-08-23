@@ -8,11 +8,15 @@
 <meta http-equiv="Expires" content="0">
 
 <title>ConfigPC — Les meilleures configs PC du moment</title>
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 <header class="site">
   <a class="logo" href="index.html"><img class="logo-img" src="logo.png" alt="ConfigPC">Config<span>PC</span></a>
+  <nav class="mainnav">
+    <a href="index.html" class="navlink" data-p="index">Configs</a>
+    <a href="compare.html" class="navlink" data-p="compare">Comparateur</a>
+  </nav>
   <div class="tag">Configs mises à jour régulièrement</div>
 </header>
 
@@ -34,8 +38,7 @@
   © <span id="year"></span> ConfigPC — <a href="#">Mentions légales</a>
 </footer>
 
-<script src="ui.js?v=7"></script>
-<script src="merchants.js?v=7"></script>
+<script src="ui.js?v=8"></script>
 <script>
   const s = document.createElement('script');
   s.src = 'data.js?t=' + Date.now();
@@ -51,7 +54,7 @@
     if (notice) document.querySelector(".disclosure").insertAdjacentHTML("beforebegin", notice);
     const list = document.getElementById("configs-list");
     CONFIGS.forEach((cfg, i) => {
-      const total = configTotal(cfg);
+      const total = configTotalText(cfg);
       const nb = cfg.components.length;
       const missing = missingCount(cfg);
       const a = document.createElement("a");
@@ -67,7 +70,7 @@
         </div>
         <div class="price-wrap">
           <div class="price-label">Total dès</div>
-          <div class="config-price">${total} €</div>
+          <div class="config-price">${total}</div>
         </div>`;
       list.appendChild(a);
     });
