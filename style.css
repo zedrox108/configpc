@@ -1,0 +1,204 @@
+:root {
+  --bg: #0f1115;
+  --panel: #171a21;
+  --panel-2: #1e222b;
+  --text: #e8eaed;
+  --muted: #9aa1ac;
+  --accent: #4f8cff;
+  --accent-2: #29c76f;
+  --warn: #ffb020;
+  --border: #2a2e38;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+header.site {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+header.site .logo {
+  font-weight: 700;
+  font-size: 1.2rem;
+  text-decoration: none;
+  color: var(--text);
+}
+
+header.site .logo span { color: var(--accent); }
+
+main {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+}
+
+.disclosure {
+  font-size: 0.85rem;
+  color: var(--muted);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 24px;
+}
+
+.config-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.config-card:hover { border-color: var(--accent); }
+
+.config-card h2 { margin: 0 0 6px; font-size: 1.15rem; }
+.config-card p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.config-price {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent-2);
+  white-space: nowrap;
+}
+
+.config-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.config-header h1 { margin: 0; font-size: 1.5rem; }
+.config-total { font-size: 1.6rem; font-weight: 700; color: var(--accent-2); }
+
+.component-row {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.component-info .category {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.component-info .name { font-weight: 600; margin-top: 2px; }
+
+.offer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.offer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.offer .merchant { color: var(--muted); font-size: 0.85rem; }
+.offer .price { font-weight: 700; }
+
+.btn {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn:hover { filter: brightness(1.08); }
+.btn.secondary { background: var(--panel-2); border: 1px solid var(--border); color: var(--text); }
+
+.back-link {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.back-link:hover { color: var(--text); }
+
+/* --- Gateway / passerelle --- */
+.gateway-box {
+  max-width: 520px;
+  margin: 60px auto;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 32px;
+  text-align: center;
+}
+
+.gateway-box .icon { font-size: 2.4rem; margin-bottom: 10px; }
+.gateway-box h1 { font-size: 1.3rem; margin: 0 0 12px; }
+.gateway-box p { color: var(--muted); margin: 0 0 22px; font-size: 0.95rem; }
+
+.gateway-box .product-summary {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 22px;
+  text-align: left;
+}
+.gateway-box .product-summary .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; }
+.gateway-box .product-summary .value { font-weight: 700; margin-top: 2px; }
+
+.gateway-box .btn-continue {
+  width: 100%;
+  padding: 14px;
+  font-size: 1rem;
+  border-radius: 10px;
+}
+
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.step-indicator .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--border);
+}
+.step-indicator .dot.active { background: var(--accent); }
+.step-indicator .dot.done { background: var(--accent-2); }
+
+.error-box {
+  max-width: 480px;
+  margin: 60px auto;
+  text-align: center;
+  color: var(--muted);
+}

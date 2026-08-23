@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Redirection — ConfigPC</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site">
+  <a class="logo" href="index.html">Config<span>PC</span></a>
+</header>
+
+<main>
+  <div id="gateway"></div>
+</main>
+
+<script src="data.js"></script>
+<script>
+/**
+ * PAGE PASSERELLE
+ * ================
+ * Logique :
+ *  - offer.affiliate === true  -> un seul clic suffit (le lien affilié tracke déjà tout),
+ *    on affiche juste l'avertissement puis on redirige vers affiliateUrl.
+ *
+ *  - offer.affiliate === false -> flux en 2 étapes :
+ *      Étape 1 : on prévient l'utilisateur, on l'envoie sur lockerUrl (ton lien
+ *                Linkvertise / Adfoc.us / Exe.io etc. qui te rémunère au clic/à la vue).
+ *                On mémorise en localStorage que l'étape 1 a été faite pour cette offre.
+ *      Étape 2 : quand l'utilisateur revient sur cette page (soit en cliquant "retour",
+ *                soit parce que ton service de locker redirige automatiquement vers
+ *                gateway.html?ref=...&return=1), on affiche le bouton final qui
+ *                envoie directement vers le produit (offer.url).
+ *
+ * Configure tes vrais liens (affiliateUrl / lockerUrl) dans data.js.
+ */
+
+const params = new URLSearchParams(location.search);
+const refId = params.get("ref");
+const isReturn = params.get("return") === "1";
+const found = findOfferById(refId);
+const root = document.getElementById("gateway");
+
+function storageKey(id) { return "cpc_step1_" + id; }
+
+function renderError() {
+  root.innerHTML = `
+    <div class="error-box">
+      <h2>Lien invalide</h2>
+      <p>Cette offre n'existe pas ou n'est plus disponible.</p>
+      <a class="btn secondary" href="index.html">Retour à l'accueil</a>
+    </div>`;
+}
+
+function renderStep1(offer, component, config) {
+  root.innerHTML = `
+    <div class="gateway-box">
+      <div class="step-indicator">
+        <div class="dot active"></div>
+        <div class="dot"></div>
+      </div>
+      <div class="icon">⚠️</div>
+      <h1>Vous allez être redirigé</h1>
+      <p>
+        Ce composant provient d'un partenaire. Avant d'accéder à la fiche produit,
+        vous allez transiter par une page intermédiaire (publicité / partenaire).
+        Revenez ensuite sur cette page pour accéder directement au produit.
+      </p>
+      <div class="product-summary">
+        <div class="label">${component.category}</div>
+        <div class="value">${component.name}</div>
+        <div class="label" style="margin-top:8px">Marchand</div>
+        <div class="value">${offer.merchant} — ${offer.price} €</div>
+      </div>
+      <button class="btn btn-continue" id="go-step1">Continuer</button>
+    </div>
+  `;
+
+  document.getElementById("go-step1").addEventListener("click", () => {
+    localStorage.setItem(storageKey(offer.id), "1");
+    const target = offer.lockerUrl && offer.lockerUrl.trim() !== ""
+      ? offer.lockerUrl
+      : null;
+
+    if (!target) {
+      // Pas encore de lien passerelle configuré pour cette offre : on prévient
+      // et on redirige directement vers le produit pour ne pas bloquer le visiteur.
+      alert("Lien passerelle non configuré pour cette offre (voir data.js) — redirection directe vers le produit.");
+      window.location.href = offer.url;
+      return;
+    }
+    window.location.href = target;
+  });
+}
+
+function renderStep2(offer, component) {
+  root.innerHTML = `
+    <div class="gateway-box">
+      <div class="step-indicator">
+        <div class="dot done"></div>
+        <div class="dot active"></div>
+      </div>
+      <div class="icon">✅</div>
+      <h1>Merci ! Vous pouvez continuer</h1>
+      <p>Cliquez ci-dessous pour accéder à la fiche produit.</p>
+      <div class="product-summary">
+        <div class="label">${component.category}</div>
+        <div class="value">${component.name}</div>
+        <div class="label" style="margin-top:8px">Marchand</div>
+        <div class="value">${offer.merchant} — ${offer.price} €</div>
+      </div>
+      <button class="btn btn-continue" id="go-step2">Accéder au produit</button>
+    </div>
+  `;
+
+  document.getElementById("go-step2").addEventListener("click", () => {
+    localStorage.removeItem(storageKey(offer.id));
+    window.location.href = offer.url;
+  });
+}
+
+function renderAffiliateDirect(offer, component) {
+  root.innerHTML = `
+    <div class="gateway-box">
+      <div class="icon">➡️</div>
+      <h1>Vous allez être redirigé</h1>
+      <p>Vous allez être redirigé vers notre partenaire pour cette offre.</p>
+      <div class="product-summary">
+        <div class="label">${component.category}</div>
+        <div class="value">${component.name}</div>
+        <div class="label" style="margin-top:8px">Marchand</div>
+        <div class="value">${offer.merchant} — ${offer.price} €</div>
+      </div>
+      <button class="btn btn-continue" id="go-affiliate">Continuer vers ${offer.merchant}</button>
+    </div>
+  `;
+
+  document.getElementById("go-affiliate").addEventListener("click", () => {
+    const target = offer.affiliateUrl && offer.affiliateUrl.trim() !== ""
+      ? offer.affiliateUrl
+      : offer.url;
+    window.location.href = target;
+  });
+}
+
+if (!found) {
+  renderError();
+} else {
+  const { offer, component, config } = found;
+
+  if (offer.affiliate) {
+    renderAffiliateDirect(offer, component);
+  } else {
+    const step1Done = localStorage.getItem(storageKey(offer.id)) === "1";
+    if (step1Done || isReturn) {
+      renderStep2(offer, component);
+    } else {
+      renderStep1(offer, component, config);
+    }
+  }
+}
+</script>
+</body>
+</html>

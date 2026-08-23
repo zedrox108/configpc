@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Détail config — ConfigPC</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site">
+  <a class="logo" href="index.html">Config<span>PC</span></a>
+</header>
+
+<main>
+  <a class="back-link" href="index.html">&larr; Toutes les configs</a>
+  <div id="content"></div>
+</main>
+
+<script src="data.js"></script>
+<script>
+  const params = new URLSearchParams(location.search);
+  const id = params.get("id");
+  const cfg = CONFIGS.find(c => c.id === id);
+  const content = document.getElementById("content");
+
+  if (!cfg) {
+    content.innerHTML = `<div class="error-box"><h2>Config introuvable</h2><p>Retourne à l'accueil pour voir les configs disponibles.</p></div>`;
+  } else {
+    content.innerHTML = `
+      <div class="config-header">
+        <h1>${cfg.name}</h1>
+        <div class="config-total">${cfg.price} €</div>
+      </div>
+      <p style="color:var(--muted)">${cfg.description || ""}</p>
+      <div id="components"></div>
+    `;
+
+    const compsEl = document.getElementById("components");
+    cfg.components.forEach(comp => {
+      const row = document.createElement("div");
+      row.className = "component-row";
+
+      const offersHtml = comp.offers.map(offer => `
+        <div class="offer">
+          <span class="merchant">${offer.merchant}</span>
+          <span class="price">${offer.price} €</span>
+          <a class="btn" href="gateway.html?ref=${encodeURIComponent(offer.id)}">Voir l'offre</a>
+        </div>
+      `).join("");
+
+      row.innerHTML = `
+        <div class="component-info">
+          <div class="category">${comp.category}</div>
+          <div class="name">${comp.name}</div>
+        </div>
+        <div class="offer-list">${offersHtml}</div>
+      `;
+      compsEl.appendChild(row);
+    });
+  }
+</script>
+</body>
+</html>

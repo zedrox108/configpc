@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configs PC — Le site</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site">
+  <a class="logo" href="index.html">Config<span>PC</span></a>
+</header>
+
+<main>
+  <div class="disclosure">
+    Ce site contient des liens vers des sites marchands partenaires. Certains liens sont des
+    liens affiliés : nous pouvons percevoir une commission sur les achats réalisés via ces liens,
+    sans coût supplémentaire pour vous.
+  </div>
+
+  <h1>Les configs du moment</h1>
+  <div id="configs-list"></div>
+</main>
+
+<script src="data.js"></script>
+<script>
+  const list = document.getElementById("configs-list");
+  CONFIGS.forEach(cfg => {
+    const a = document.createElement("a");
+    a.className = "config-card";
+    a.href = "config.html?id=" + encodeURIComponent(cfg.id);
+    a.innerHTML = `
+      <div>
+        <h2>${cfg.name}</h2>
+        <p>${cfg.description || ""}</p>
+      </div>
+      <div class="config-price">${cfg.price} €</div>
+    `;
+    list.appendChild(a);
+  });
+</script>
+</body>
+</html>
