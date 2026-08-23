@@ -1,33 +1,27 @@
 /**
- * ========================================================================
- *  DONNÉES DU SITE — CONFIGS PC   (le SEUL fichier à modifier au quotidien)
- * ========================================================================
+ * ==========================================================================
+ *  TES CONFIGS PC  —  le SEUL fichier à modifier au quotidien
+ * ==========================================================================
  *
- *  Chaque CONFIG contient des COMPOSANTS (CPU, GPU...).
- *  Chaque composant a une ou plusieurs OFFRES (un marchand = une offre).
+ *  Une OFFRE s'écrit maintenant très simplement :
  *
- *  Le site trie automatiquement les offres de la MOINS CHÈRE à la plus chère,
- *  FRAIS DE PORT INCLUS (prix + livraison). Le total de la config se recalcule
- *  tout seul à partir de l'offre la moins chère de chaque composant.
+ *      { id: "cpu-1500-ldlcfr", m: "ldlc-fr", price: 229, shipping: 0,
+ *        url: "https://www.ldlc.com/fiche/xxxx.html" }
  *
- *  --- Champs d'une OFFRE ---
- *   id        : identifiant unique sur TOUT le site (sert à la passerelle)
- *   merchant  : nom du marchand (ex: "Amazon", "Grosbill")
- *   country   : code pays de l'offre : "fr","de","es","it","gb","be","nl","pt","us"  (facultatif, affiche un vrai drapeau)
- *   price     : prix du produit en euros (nombre)
- *   shipping  : frais de port en euros (nombre, mets 0 si gratuit)
- *   url       : lien final vers la fiche produit
- *   affiliate : true = tu as un lien affilié / false = pas d'affiliation (on passe par le locker)
- *   affiliateUrl : (si affiliate=true) ton lien affilié
- *   lockerUrl : (si affiliate=false) ton lien rémunéré clk.sh (voir README)
- *   stock     : "ok" | "low" | "out"   (affiche un badge stock, facultatif)
- *   promo     : { active:true, endDate:"2026-09-15T23:59", oldPrice:259 }  (facultatif)
+ *   m       : la boutique, choisie dans merchants.js (ex "ldlc-fr", "digitec-ch")
+ *             -> le nom, le drapeau ET les pays livrés sont automatiques.
+ *   id      : identifiant unique sur tout le site (sert à la passerelle)
+ *   price   : prix du produit (nombre)
+ *   shipping: frais de port (0 si offert)
+ *   url     : lien vers la fiche produit
+ *   affiliate / affiliateUrl / lockerUrl : voir README
+ *   stock   : "ok" | "low" | "out"                        (facultatif)
+ *   promo   : { active:true, endDate:"2026-09-15T23:59", oldPrice:239 }  (facultatif)
  *
- *  --- Champs d'un COMPOSANT ---
- *   category  : "CPU","GPU","RAM","Stockage","Carte mère","Alimentation","Boîtier","Refroidissement"
- *   name      : nom du composant
- *   image     : adresse d'une image du produit (URL). Laisse "" si tu n'en as pas.
- *   offers    : liste des offres (voir ci-dessus)
+ *  Un COMPOSANT :
+ *   category : "CPU","GPU","RAM","Stockage","Carte mère","Alimentation","Boîtier"
+ *   name     : nom du composant
+ *   image    : adresse d'une photo du produit (laisse "" si tu n'en as pas)
  */
 
 const CONFIGS = [
@@ -39,101 +33,97 @@ const CONFIGS = [
       {
         category: "CPU",
         name: "AMD Ryzen 5 7600X",
-        image: "https://m.media-amazon.com/images/I/61yn-uMBAwL._AC_SL1000_.jpg",
+        image: "",
         offers: [
-          {
-            id: "cpu-1500-amazonde", merchant: "Amazon", country: "de",
-            price: 199, shipping: 3, url: "https://www.amazon.de/",
+          { id: "cpu-ldlcfr",   m: "ldlc-fr",     price: 229, shipping: 0, url: "https://www.ldlc.com/",
             affiliate: true, affiliateUrl: "", stock: "ok",
-            promo: { active: true, endDate: "2026-09-15T23:59", oldPrice: 239 }
-          },
-          {
-            id: "cpu-1500-grosbill", merchant: "Grosbill", country: "fr",
-            price: 229, shipping: 0, url: "https://www.grosbill.com/",
-            affiliate: false, lockerUrl: "", stock: "ok"
-          },
-          {
-            id: "cpu-1500-ldlc", merchant: "LDLC", country: "fr",
-            price: 235, shipping: 5, url: "https://www.ldlc.com/",
-            affiliate: true, affiliateUrl: "", stock: "low"
-          }
+            promo: { active: true, endDate: "2026-09-15T23:59", oldPrice: 259 } },
+          { id: "cpu-grosbill", m: "grosbill-fr", price: 235, shipping: 0, url: "https://www.grosbill.com/",
+            affiliate: false, lockerUrl: "", stock: "ok" },
+          { id: "cpu-alternatebe", m: "alternate-be", price: 232, shipping: 5, url: "https://fr.alternate.be/",
+            affiliate: false, lockerUrl: "", stock: "ok" },
+          { id: "cpu-digitec",  m: "digitec-ch",  price: 245, shipping: 0, url: "https://www.digitec.ch/",
+            affiliate: false, lockerUrl: "", stock: "ok" },
+          { id: "cpu-ldlcch",   m: "ldlc-ch",     price: 252, shipping: 8, url: "https://www.ldlc.com/fr-ch/",
+            affiliate: false, lockerUrl: "", stock: "ok" }
         ]
       },
       {
         category: "GPU",
         name: "NVIDIA GeForce RTX 4070",
-        image: "https://m.media-amazon.com/images/I/71bYd0mLZzL._AC_SL1500_.jpg",
+        image: "",
         offers: [
-          {
-            id: "gpu-1500-pccomp", merchant: "PC Componentes", country: "es",
-            price: 549, shipping: 12, url: "https://www.pccomponentes.com/",
-            affiliate: false, lockerUrl: "", stock: "ok"
-          },
-          {
-            id: "gpu-1500-grosbill", merchant: "Grosbill", country: "fr",
-            price: 599, shipping: 0, url: "https://www.grosbill.com/",
-            affiliate: false, lockerUrl: "", stock: "ok"
-          }
+          { id: "gpu-pccompfr", m: "pccomp-fr",   price: 549, shipping: 12, url: "https://www.pccomponentes.fr/",
+            affiliate: false, lockerUrl: "", stock: "ok" },
+          { id: "gpu-topachat", m: "topachat-fr", price: 579, shipping: 0, url: "https://www.topachat.com/",
+            affiliate: false, lockerUrl: "", stock: "ok" },
+          { id: "gpu-coolbluebe", m: "coolblue-be", price: 589, shipping: 0, url: "https://www.coolblue.be/fr/",
+            affiliate: false, lockerUrl: "", stock: "ok" },
+          { id: "gpu-digitec",  m: "digitec-ch",  price: 619, shipping: 0, url: "https://www.digitec.ch/",
+            affiliate: false, lockerUrl: "", stock: "low" }
         ]
       },
       {
         category: "RAM",
         name: "Corsair Vengeance 32 Go DDR5 6000MHz",
-        image: "https://m.media-amazon.com/images/I/61vLNqM4EGL._AC_SL1500_.jpg",
+        image: "",
         offers: [
-          {
-            id: "ram-1500-ldlc", merchant: "LDLC", country: "fr",
-            price: 99, shipping: 5, url: "https://www.ldlc.com/",
-            affiliate: true, affiliateUrl: "", stock: "ok"
-          }
+          { id: "ram-ldlcfr",  m: "ldlc-fr",    price: 99,  shipping: 5, url: "https://www.ldlc.com/",
+            affiliate: true, affiliateUrl: "", stock: "ok" },
+          { id: "ram-alternatebe", m: "alternate-be", price: 104, shipping: 5, url: "https://fr.alternate.be/",
+            affiliate: false, lockerUrl: "", stock: "ok" },
+          { id: "ram-brackch", m: "brack-ch",   price: 112, shipping: 0, url: "https://www.brack.ch/",
+            affiliate: false, lockerUrl: "", stock: "ok" }
         ]
       },
       {
         category: "Stockage",
         name: "SSD NVMe 1 To Gen4",
-        image: "https://m.media-amazon.com/images/I/71OWesUAG5L._AC_SL1500_.jpg",
+        image: "",
         offers: [
-          {
-            id: "ssd-1500-amazon", merchant: "Amazon", country: "fr",
-            price: 69, shipping: 0, url: "https://www.amazon.fr/",
-            affiliate: true, affiliateUrl: "", stock: "ok"
-          }
+          { id: "ssd-amazonfr", m: "amazon-fr",  price: 69, shipping: 0, url: "https://www.amazon.fr/",
+            affiliate: true, affiliateUrl: "", stock: "ok" },
+          { id: "ssd-amazonbe", m: "amazon-be",  price: 71, shipping: 0, url: "https://www.amazon.com.be/",
+            affiliate: true, affiliateUrl: "", stock: "ok" },
+          { id: "ssd-galaxusch", m: "galaxus-ch", price: 78, shipping: 0, url: "https://www.galaxus.ch/",
+            affiliate: false, lockerUrl: "", stock: "ok" }
         ]
       },
       {
         category: "Carte mère",
         name: "Carte mère B650 AM5",
-        image: "https://m.media-amazon.com/images/I/81xk1i5FCUL._AC_SL1500_.jpg",
+        image: "",
         offers: [
-          {
-            id: "mb-1500-grosbill", merchant: "Grosbill", country: "fr",
-            price: 149, shipping: 0, url: "https://www.grosbill.com/",
-            affiliate: false, lockerUrl: "", stock: "ok"
-          }
+          { id: "mb-grosbill", m: "grosbill-fr", price: 149, shipping: 0, url: "https://www.grosbill.com/",
+            affiliate: false, lockerUrl: "", stock: "ok" },
+          { id: "mb-vdbbe",    m: "vandenborre-be", price: 155, shipping: 0, url: "https://www.vandenborre.be/",
+            affiliate: false, lockerUrl: "", stock: "ok" },
+          { id: "mb-digitec",  m: "digitec-ch",  price: 168, shipping: 0, url: "https://www.digitec.ch/",
+            affiliate: false, lockerUrl: "", stock: "ok" }
         ]
       },
       {
         category: "Alimentation",
         name: "Alimentation 650W 80+ Gold",
-        image: "https://m.media-amazon.com/images/I/71yr5MnQ0AL._AC_SL1500_.jpg",
+        image: "",
         offers: [
-          {
-            id: "psu-1500-topachat", merchant: "TopAchat", country: "fr",
-            price: 79, shipping: 0, url: "https://www.topachat.com/",
-            affiliate: false, lockerUrl: "", stock: "ok"
-          }
+          { id: "psu-topachat", m: "topachat-fr", price: 79, shipping: 0, url: "https://www.topachat.com/",
+            affiliate: false, lockerUrl: "", stock: "ok" },
+          { id: "psu-alternatech", m: "alternate-ch", price: 92, shipping: 0, url: "https://www.alternate.ch/",
+            affiliate: false, lockerUrl: "", stock: "ok" }
         ]
       },
       {
         category: "Boîtier",
         name: "Boîtier ATX ventilé",
-        image: "https://m.media-amazon.com/images/I/71RYw+FvcHL._AC_SL1500_.jpg",
+        image: "",
         offers: [
-          {
-            id: "case-1500-grosbill", merchant: "Grosbill", country: "fr",
-            price: 69, shipping: 0, url: "https://www.grosbill.com/",
-            affiliate: false, lockerUrl: "", stock: "ok"
-          }
+          { id: "case-grosbill", m: "grosbill-fr", price: 69, shipping: 0, url: "https://www.grosbill.com/",
+            affiliate: false, lockerUrl: "", stock: "ok" },
+          { id: "case-galaxusbe", m: "galaxus-be", price: 74, shipping: 0, url: "https://www.galaxus.be/",
+            affiliate: false, lockerUrl: "", stock: "ok" },
+          { id: "case-digitec", m: "digitec-ch",  price: 82, shipping: 0, url: "https://www.digitec.ch/",
+            affiliate: false, lockerUrl: "", stock: "ok" }
         ]
       }
     ]
@@ -142,33 +132,51 @@ const CONFIGS = [
 
 /* ===================== moteur (ne pas modifier) ===================== */
 
-// coût total d'une offre = prix + frais de port
-function offerTotal(o) { return (Number(o.price) || 0) + (Number(o.shipping) || 0); }
-
-// offres d'un composant triées de la moins chère à la plus chère (port inclus)
-function sortedOffers(comp) {
-  return [...comp.offers].sort((a, b) => offerTotal(a) - offerTotal(b));
+function currentCountry() {
+  try { return (window.CONFIGPC_COUNTRY || localStorage.getItem("configpc_country") || "fr"); }
+  catch (e) { return "fr"; }
 }
 
-// offre la moins chère d'un composant
-function cheapestOffer(comp) { return sortedOffers(comp)[0]; }
+// infos marchand d'une offre (nom, drapeau, pays livrés) depuis merchants.js
+function offerMerchant(o) {
+  const m = (typeof getMerchant === "function") ? getMerchant(o.m) : null;
+  if (m) return m;
+  return { name: o.merchant || o.m || "Marchand", flag: o.country || "", shipsTo: o.shipsTo || [] };
+}
 
-// total d'une config = somme des offres les moins chères de chaque composant
-function configTotal(cfg) {
-  return cfg.components.reduce((sum, c) => {
-    const o = cheapestOffer(c);
-    return sum + (o ? offerTotal(o) : 0);
+// l'offre est-elle commandable depuis le pays choisi ?
+function offerAvailable(o, country) {
+  const c = country || currentCountry();
+  const ships = offerMerchant(o).shipsTo || [];
+  if (!ships.length) return true;
+  return ships.map(x => String(x).toLowerCase()).includes(c);
+}
+
+function offerTotal(o) { return (Number(o.price) || 0) + (Number(o.shipping) || 0); }
+
+function sortedOffers(comp, country) {
+  return comp.offers
+    .filter(o => offerAvailable(o, country))
+    .sort((a, b) => offerTotal(a) - offerTotal(b));
+}
+
+function cheapestOffer(comp, country) { return sortedOffers(comp, country)[0]; }
+
+function configTotal(cfg, country) {
+  return cfg.components.reduce((s, c) => {
+    const o = cheapestOffer(c, country);
+    return s + (o ? offerTotal(o) : 0);
   }, 0);
 }
 
-// retrouve une offre par son id (utilisé par la passerelle)
+function missingCount(cfg, country) {
+  return cfg.components.filter(c => !cheapestOffer(c, country)).length;
+}
+
 function findOfferById(offerId) {
-  for (const config of CONFIGS) {
-    for (const comp of config.components) {
-      for (const offer of comp.offers) {
+  for (const config of CONFIGS)
+    for (const comp of config.components)
+      for (const offer of comp.offers)
         if (offer.id === offerId) return { offer, component: comp, config };
-      }
-    }
-  }
   return null;
 }

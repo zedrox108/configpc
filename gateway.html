@@ -3,8 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
 <title>Redirection — ConfigPC</title>
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 <header class="site">
@@ -15,7 +19,8 @@
   <div id="gateway"></div>
 </main>
 
-<script src="ui.js?v=4"></script>
+<script src="ui.js?v=7"></script>
+<script src="merchants.js?v=7"></script>
 <script>
 /**
  * PAGE PASSERELLE — logique :
@@ -32,6 +37,7 @@
   document.head.appendChild(s);
 
 function initGateway() {
+  if (typeof initCountrySelector === "function") initCountrySelector();
   const params = new URLSearchParams(location.search);
   const refId = params.get("ref");
   const isReturn = params.get("return") === "1";
@@ -55,7 +61,7 @@ function initGateway() {
         <div class="label">${component.category}</div>
         <div class="value">${component.name}</div>
         <div class="label" style="margin-top:8px">Marchand</div>
-        <div class="value">${typeof flagSVG==='function'?flagSVG(offer.country):""} ${offer.merchant} — ${offer.price} €</div>
+        <div class="value">${flagSVG(offerMerchant(offer).flag)} ${offerMerchant(offer).name} — ${offer.price} €</div>
       </div>`;
   }
 
@@ -103,7 +109,7 @@ function initGateway() {
         <h1>Vous allez être redirigé</h1>
         <p>Vous allez être redirigé vers notre partenaire pour cette offre.</p>
         ${summary(offer, component)}
-        <button class="btn btn-continue" id="go-affiliate">Continuer vers ${offer.merchant}</button>
+        <button class="btn btn-continue" id="go-affiliate">Continuer vers ${offerMerchant(offer).name}</button>
       </div>`;
     document.getElementById("go-affiliate").addEventListener("click", () => {
       const target = offer.affiliateUrl && offer.affiliateUrl.trim() !== "" ? offer.affiliateUrl : offer.url;

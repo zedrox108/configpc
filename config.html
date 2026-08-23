@@ -3,8 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
 <title>Détail config — ConfigPC</title>
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 <header class="site">
@@ -21,7 +25,8 @@
   © <span id="year"></span> ConfigPC — <a href="index.html">Accueil</a>
 </footer>
 
-<script src="ui.js?v=4"></script>
+<script src="ui.js?v=7"></script>
+<script src="merchants.js?v=7"></script>
 <script>
   const s = document.createElement('script');
   s.src = 'data.js?t=' + Date.now();
@@ -32,6 +37,7 @@
 
   function initConfig() {
     document.getElementById("year").textContent = new Date().getFullYear();
+    initCountrySelector();
     const STOCK = { ok:{txt:"En stock",cls:"stock-ok"}, low:{txt:"Stock faible",cls:"stock-low"}, out:{txt:"Épuisé",cls:"stock-out"} };
     const params = new URLSearchParams(location.search);
     const cfg = CONFIGS.find(c => c.id === params.get("id"));
@@ -39,7 +45,8 @@
 
     function offerRow(offer, isBest) {
       const total = offerTotal(offer);
-      const flag = flagSVG(offer.country);
+      const M = offerMerchant(offer);
+      const flag = flagSVG(M.flag);
       const portTxt = offer.shipping > 0 ? `+ ${offer.shipping}€ port` : "port offert";
       const stock = offer.stock && STOCK[offer.stock] ? `<span class="stock-badge ${STOCK[offer.stock].cls}">${STOCK[offer.stock].txt}</span>` : "";
       const promo = (offer.promo && offer.promo.active) ? `<span class="promo-badge">🔥 Promo${offer.promo.oldPrice ? " −"+(offer.promo.oldPrice - offer.price)+"€" : ""}</span>` : "";
@@ -49,9 +56,10 @@
         <div class="offer-line ${isBest ? "best" : ""}">
           <div class="offer-merchant">
             ${isBest ? '<span class="best-tag">Le moins cher</span>' : ''}
-            <span class="m-name">${flag}${offer.merchant}</span>
+            <span class="m-name">${flag}${M.name}</span>
             <span class="m-sub">${portTxt} ${stock}</span>
             ${promoLine}
+            ${M.warn ? `<div class="merchant-warn">⚠ ${M.warn}</div>` : ""}
           </div>
           <div class="offer-right">
             <div class="offer-prices">${oldPrice}<span class="offer-total">${total}€</span></div>
@@ -64,6 +72,7 @@
 
     const total = configTotal(cfg);
     content.innerHTML = `
+      ${countryNotice()}
       <div class="config-header reveal">
         <div><h1>${cfg.name}</h1><div class="sub">${cfg.description || ""}</div></div>
         <div class="total-wrap"><div class="total-label">Total au meilleur prix</div><div class="config-total">${total}€</div></div>
@@ -75,6 +84,23 @@
     cfg.components.forEach((comp, i) => {
       const offers = sortedOffers(comp);
       const best = offers[0];
+      if (!best) {
+        const none = document.createElement("div");
+        none.className = "component-card reveal unavailable";
+        none.innerHTML = `
+          <div class="component-head">
+            <div class="component-info">
+              <div class="ico">${categoryIcon(comp.category)}</div>
+              <div>
+                <div class="category">${comp.category}</div>
+                <div class="name">${comp.name}</div>
+                <div class="best-inline">Aucun marchand ne livre ce produit dans votre pays</div>
+              </div>
+            </div>
+          </div>`;
+        compsEl.appendChild(none);
+        return;
+      }
       const img = comp.image
         ? `<img class="comp-img" src="${comp.image}" alt="${comp.name}" loading="lazy" onerror="this.outerHTML='<div class=&quot;ico&quot;>'+categoryIcon('${comp.category}')+'</div>'">`
         : `<div class="ico">${categoryIcon(comp.category)}</div>`;
@@ -89,7 +115,7 @@
             <div>
               <div class="category">${comp.category}</div>
               <div class="name">${comp.name}</div>
-              <div class="best-inline">Dès <strong>${offerTotal(best)}€</strong> ${flagSVG(best.country)} ${best.merchant} · ${offers.length} offre${offers.length>1?"s":""}</div>
+              <div class="best-inline">Dès <strong>${offerTotal(best)}€</strong> ${flagSVG(offerMerchant(best).flag)} ${offerMerchant(best).name} · ${offers.length} offre${offers.length>1?"s":""}</div>
             </div>
           </div>
           <div class="head-right">

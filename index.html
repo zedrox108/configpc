@@ -3,8 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
 <title>ConfigPC — Les meilleures configs PC du moment</title>
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 <header class="site">
@@ -30,7 +34,8 @@
   © <span id="year"></span> ConfigPC — <a href="#">Mentions légales</a>
 </footer>
 
-<script src="ui.js?v=4"></script>
+<script src="ui.js?v=7"></script>
+<script src="merchants.js?v=7"></script>
 <script>
   const s = document.createElement('script');
   s.src = 'data.js?t=' + Date.now();
@@ -41,10 +46,14 @@
 
   function initAccueil() {
     document.getElementById("year").textContent = new Date().getFullYear();
+    initCountrySelector();
+    const notice = countryNotice();
+    if (notice) document.querySelector(".disclosure").insertAdjacentHTML("beforebegin", notice);
     const list = document.getElementById("configs-list");
     CONFIGS.forEach((cfg, i) => {
       const total = configTotal(cfg);
       const nb = cfg.components.length;
+      const missing = missingCount(cfg);
       const a = document.createElement("a");
       a.className = "config-card reveal";
       a.style.animationDelay = (0.06 * i) + "s";
@@ -54,6 +63,7 @@
           <h2>${cfg.name}</h2>
           <p>${cfg.description || ""}</p>
           <div class="cta">${nb} composants · comparés au meilleur prix →</div>
+          ${missing ? `<div class="missing-note">${missing} composant${missing>1?"s":""} sans offre dans votre pays</div>` : ""}
         </div>
         <div class="price-wrap">
           <div class="price-label">Total dès</div>

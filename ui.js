@@ -10,6 +10,7 @@ const FLAGS = {
   nl: '<rect width="20" height="4.67" y="0" fill="#AE1C28"/><rect width="20" height="4.67" y="4.67" fill="#fff"/><rect width="20" height="4.66" y="9.33" fill="#21468B"/>',
   pt: '<rect width="20" height="14" fill="#FF0000"/><rect width="8" height="14" fill="#006600"/>',
   gb: '<rect width="20" height="14" fill="#012169"/><rect width="20" height="2.5" y="5.75" fill="#fff"/><rect width="3" height="14" x="8.5" fill="#fff"/><rect width="20" height="1.4" y="6.3" fill="#C8102E"/><rect width="1.8" height="14" x="9.1" fill="#C8102E"/>',
+  ch: '<rect width="20" height="14" fill="#D52B1E"/><rect x="8.2" y="3" width="3.6" height="8" fill="#fff"/><rect x="6" y="5.2" width="8" height="3.6" fill="#fff"/>',
   us: '<rect width="20" height="14" fill="#fff"/><rect width="20" height="2" y="0" fill="#B22234"/><rect width="20" height="2" y="4" fill="#B22234"/><rect width="20" height="2" y="8" fill="#B22234"/><rect width="20" height="2" y="12" fill="#B22234"/><rect width="9" height="7" fill="#3C3B6E"/>'
 };
 function flagSVG(code) {
@@ -44,4 +45,64 @@ function revealOnScroll() {
     entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
   }, { threshold: 0.08 });
   els.forEach(e => io.observe(e));
+}
+
+
+/* ===================== Sélecteur de pays (FR / BE / CH) ===================== */
+const COUNTRIES = {
+  fr: { name: "France",   zone: "eu" },
+  be: { name: "Belgique", zone: "eu" },
+  ch: { name: "Suisse",   zone: "ch" }
+};
+
+function getCountry() {
+  try {
+    const c = localStorage.getItem("configpc_country");
+    if (c && COUNTRIES[c]) return c;
+  } catch (e) {}
+  return "fr";
+}
+
+function setCountry(c) {
+  if (!COUNTRIES[c]) return;
+  try { localStorage.setItem("configpc_country", c); } catch (e) {}
+  window.CONFIGPC_COUNTRY = c;
+  location.reload();
+}
+
+/* Injecte le sélecteur dans l'en-tête */
+function initCountrySelector() {
+  const cur = getCountry();
+  window.CONFIGPC_COUNTRY = cur;
+  const header = document.querySelector("header.site");
+  if (!header) return;
+
+  const wrap = document.createElement("div");
+  wrap.className = "country-select";
+  wrap.innerHTML = `
+    <button class="country-btn" id="cbtn" aria-label="Changer de pays">
+      ${flagSVG(cur)}<span>${COUNTRIES[cur].name}</span><span class="chev">▾</span>
+    </button>
+    <div class="country-menu" id="cmenu">
+      ${Object.keys(COUNTRIES).map(k => `
+        <button class="country-item ${k===cur?'active':''}" data-c="${k}">
+          ${flagSVG(k)}<span>${COUNTRIES[k].name}</span>
+        </button>`).join("")}
+    </div>`;
+
+  const tag = header.querySelector(".tag");
+  if (tag) tag.replaceWith(wrap); else header.appendChild(wrap);
+
+  const btn = wrap.querySelector("#cbtn");
+  const menu = wrap.querySelector("#cmenu");
+  btn.addEventListener("click", e => { e.stopPropagation(); menu.classList.toggle("open"); });
+  document.addEventListener("click", () => menu.classList.remove("open"));
+  wrap.querySelectorAll(".country-item").forEach(it =>
+    it.addEventListener("click", () => setCountry(it.dataset.c)));
+}
+
+/* Bandeau d'info pour la Suisse (hors UE) */
+function countryNotice() {
+  if (getCountry() !== "ch") return "";
+  return `<div class="notice-ch">🇨🇭 <span>Vous êtes en Suisse : seuls les marchands livrant en Suisse sont affichés. Un achat depuis un site de l'UE peut entraîner une TVA à l'import et des frais de dédouanement.</span></div>`;
 }
