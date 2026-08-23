@@ -62,57 +62,10 @@ const MERCHANTS = {
 
 const COUNTRY_CUR = { fr:"EUR", be:"EUR", ch:"CHF" };
 
-/* ======================= TES CONFIGS ======================= */
-const CONFIGS = [
-  {
-    id: "config-1500",
-    name: "Config du moment — 1500€",
-    description: "Un bon compromis gaming/streaming pour de la 1440p haute fréquence.",
-    components: [
-      { category:"CPU", name:"AMD Ryzen 5 7600X", image:"", offers:[
-        { id:"cpu-ldlcfr", m:"ldlc-fr", price:229, shipping:0, url:"https://www.ldlc.com/", affiliate:true, affiliateUrl:"", stock:"ok",
-          promo:{ active:true, endDate:"2026-09-15T23:59", oldPrice:259 } },
-        { id:"cpu-grosbill", m:"grosbill-fr", price:235, shipping:0, url:"https://www.grosbill.com/", affiliate:false, lockerUrl:"", stock:"ok" },
-        { id:"cpu-alternatebe", m:"alternate-be", price:232, shipping:5, url:"https://fr.alternate.be/", affiliate:false, lockerUrl:"", stock:"ok" },
-        { id:"cpu-digitec", m:"digitec-ch", price:245, shipping:0, url:"https://www.digitec.ch/", affiliate:false, lockerUrl:"", stock:"ok" },
-        { id:"cpu-ldlcch", m:"ldlc-ch", price:252, shipping:8, url:"https://www.ldlc.com/fr-ch/", affiliate:false, lockerUrl:"", stock:"ok" }
-      ]},
-      { category:"GPU", name:"NVIDIA GeForce RTX 4070", image:"", offers:[
-        { id:"gpu-pccompfr", m:"pccomp-fr", price:549, shipping:12, url:"https://www.pccomponentes.fr/", affiliate:false, lockerUrl:"", stock:"ok" },
-        { id:"gpu-topachat", m:"topachat-fr", price:579, shipping:0, url:"https://www.topachat.com/", affiliate:false, lockerUrl:"", stock:"ok" },
-        { id:"gpu-coolbluebe", m:"coolblue-be", price:589, shipping:0, url:"https://www.coolblue.be/fr/", affiliate:false, lockerUrl:"", stock:"ok" },
-        { id:"gpu-digitec", m:"digitec-ch", price:619, shipping:0, url:"https://www.digitec.ch/", affiliate:false, lockerUrl:"", stock:"low" }
-      ]},
-      { category:"RAM", name:"Corsair Vengeance 32 Go DDR5 6000MHz", image:"", offers:[
-        { id:"ram-ldlcfr", m:"ldlc-fr", price:99, shipping:5, url:"https://www.ldlc.com/", affiliate:true, affiliateUrl:"", stock:"ok" },
-        { id:"ram-alternatebe", m:"alternate-be", price:104, shipping:5, url:"https://fr.alternate.be/", affiliate:false, lockerUrl:"", stock:"ok" },
-        { id:"ram-brackch", m:"brack-ch", price:112, shipping:0, url:"https://www.brack.ch/", affiliate:false, lockerUrl:"", stock:"ok" }
-      ]},
-      { category:"Stockage", name:"SSD NVMe 1 To Gen4", image:"", offers:[
-        { id:"ssd-amazonfr", m:"amazon-fr", price:69, shipping:0, url:"https://www.amazon.fr/", affiliate:true, affiliateUrl:"", stock:"ok" },
-        { id:"ssd-amazonbe", m:"amazon-be", price:71, shipping:0, url:"https://www.amazon.com.be/", affiliate:true, affiliateUrl:"", stock:"ok" },
-        { id:"ssd-galaxusch", m:"galaxus-ch", price:78, shipping:0, url:"https://www.galaxus.ch/", affiliate:false, lockerUrl:"", stock:"ok" },
-        { id:"ssd-alifr", m:"aliexpress-fr", price:52, shipping:0, url:"https://fr.aliexpress.com/", affiliate:true, affiliateUrl:"", stock:"ok" },
-        { id:"ssd-alibe", m:"aliexpress-be", price:53, shipping:0, url:"https://fr.aliexpress.com/", affiliate:true, affiliateUrl:"", stock:"ok" },
-        { id:"ssd-alich", m:"aliexpress-ch", price:56, shipping:0, url:"https://www.aliexpress.com/", affiliate:true, affiliateUrl:"", stock:"ok" }
-      ]},
-      { category:"Carte mère", name:"Carte mère B650 AM5", image:"", offers:[
-        { id:"mb-grosbill", m:"grosbill-fr", price:149, shipping:0, url:"https://www.grosbill.com/", affiliate:false, lockerUrl:"", stock:"ok" },
-        { id:"mb-vdbbe", m:"vandenborre-be", price:155, shipping:0, url:"https://www.vandenborre.be/", affiliate:false, lockerUrl:"", stock:"ok" },
-        { id:"mb-digitec", m:"digitec-ch", price:168, shipping:0, url:"https://www.digitec.ch/", affiliate:false, lockerUrl:"", stock:"ok" }
-      ]},
-      { category:"Alimentation", name:"Alimentation 650W 80+ Gold", image:"", offers:[
-        { id:"psu-topachat", m:"topachat-fr", price:79, shipping:0, url:"https://www.topachat.com/", affiliate:false, lockerUrl:"", stock:"ok" },
-        { id:"psu-alternatech", m:"alternate-ch", price:92, shipping:0, url:"https://www.alternate.ch/", affiliate:false, lockerUrl:"", stock:"ok" }
-      ]},
-      { category:"Boîtier", name:"Boîtier ATX ventilé", image:"", offers:[
-        { id:"case-grosbill", m:"grosbill-fr", price:69, shipping:0, url:"https://www.grosbill.com/", affiliate:false, lockerUrl:"", stock:"ok" },
-        { id:"case-galaxusbe", m:"galaxus-be", price:74, shipping:0, url:"https://www.galaxus.be/", affiliate:false, lockerUrl:"", stock:"ok" },
-        { id:"case-digitec", m:"digitec-ch", price:82, shipping:0, url:"https://www.digitec.ch/", affiliate:false, lockerUrl:"", stock:"ok" }
-      ]}
-    ]
-  }
-];
+/* ======================= TES CONFIGS =======================
+   Vide pour l'instant : ajoute tes configs depuis admin.html.
+   (l'exemple à 1500 € a été supprimé)                          */
+const CONFIGS = [];
 
 /* ===================== moteur (ne pas modifier) ===================== */
 function getMerchant(k){ return MERCHANTS[k] || null; }

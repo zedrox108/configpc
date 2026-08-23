@@ -369,3 +369,10 @@ header.site .logo { font-size: 1.4rem; gap: 12px; }
 .spec-line { font-size: .78rem; color: var(--muted); margin-top: 2px; }
 .component-card.noprice { opacity: .62; }
 .component-card.noprice .ico svg { color: var(--muted); }
+
+/* état vide sur l'accueil */
+.empty-state { text-align: center; padding: 50px 24px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); }
+.empty-state .empty-ico { font-size: 2.6rem; margin-bottom: 12px; }
+.empty-state h2 { margin: 0 0 8px; font-size: 1.25rem; }
+.empty-state p { color: var(--muted); max-width: 440px; margin: 0 auto 20px; }
+.result-count { color: var(--muted); font-size: .84rem; margin: 0 4px 14px; }

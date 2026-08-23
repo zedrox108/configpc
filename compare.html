@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Comparateur de prix — ConfigPC</title>
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
 <header class="site">
@@ -28,8 +28,8 @@
     <input type="search" id="search" class="cmp-search" placeholder="Rechercher un composant (ex : RTX 4070)…" autocomplete="off">
     <select id="cat" class="cmp-select"><option value="">Toutes les catégories</option></select>
     <select id="onlyprice" class="cmp-select">
-      <option value="1">Avec prix</option>
       <option value="0">Tout le catalogue</option>
+      <option value="1">Avec prix uniquement</option>
     </select>
   </div>
 
@@ -38,7 +38,7 @@
 
 <footer class="site">© <span id="year"></span> ConfigPC — <a href="index.html">Accueil</a></footer>
 
-<script src="ui.js?v=10"></script>
+<script src="ui.js?v=11"></script>
 <script>
   function loadScript(src){ return new Promise((ok,ko)=>{
     const s=document.createElement('script'); s.src=src+'?t='+Date.now();
@@ -94,7 +94,10 @@
       "Refroidissement":"refroidissement ventirad watercooling aio radiateur",
       "Ventilateur":"ventilateur fan ventilo rgb"
     };
-    items.forEach(i => { i._s = (i.name+' '+i.category+' '+(i.spec||'')+' '+(ALIAS[i.category]||'')).toLowerCase(); });
+    const norm = s => String(s||'').toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')   // enlève les accents
+      .replace(/[^a-z0-9]+/g,' ').trim();
+    items.forEach(i => { i._s = norm(i.name+' '+i.category+' '+(i.spec||'')+' '+(ALIAS[i.category]||'')); });
     const search = document.getElementById("search");
     const results = document.getElementById("results");
 
@@ -123,22 +126,23 @@
     }
 
     function render(){
-      const q = search.value.trim().toLowerCase();
+      const words = norm(search.value).split(' ').filter(Boolean);
       const cat = catSel.value;
       const onlyP = document.getElementById('onlyprice').value === '1';
       let list = items.filter(i =>
         (!cat || i.category === cat) &&
         (!onlyP || sortedOffers(i).length > 0) &&
-        (!q || i._s.includes(q)));
+        (!words.length || words.every(w => i._s.includes(w))));
       const totalFound = list.length;
       const LIMIT = 60;
       list = list.slice(0, LIMIT);
 
       if (!list.length) { results.innerHTML = `<p style="color:var(--muted);text-align:center;padding:30px">Aucun composant trouvé.${onlyP?'<br><small>Essayez « Tout le catalogue » pour voir les produits sans prix.</small>':''}</p>`; return; }
+      const countNote = `<p class="result-count">${totalFound} produit${totalFound>1?'s':''} trouvé${totalFound>1?'s':''}</p>`;
       const moreNote = totalFound > LIMIT
         ? `<p style="color:var(--muted);text-align:center;padding:14px">${totalFound} produits trouvés — les ${LIMIT} premiers sont affichés. Affinez votre recherche.</p>` : '';
 
-      results.innerHTML = list.map(it => {
+      results.innerHTML = countNote + list.map(it => {
         const offers = sortedOffers(it);
         const img = it.image
           ? `<img class="comp-img" src="${it.image}" alt="" loading="lazy">`

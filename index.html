@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0">
 
 <title>ConfigPC — Les meilleures configs PC du moment</title>
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
 <header class="site">
@@ -38,7 +38,7 @@
   © <span id="year"></span> ConfigPC — <a href="#">Mentions légales</a>
 </footer>
 
-<script src="ui.js?v=8"></script>
+<script src="ui.js?v=11"></script>
 <script>
   const s = document.createElement('script');
   s.src = 'data.js?t=' + Date.now();
@@ -53,6 +53,17 @@
     const notice = countryNotice();
     if (notice) document.querySelector(".disclosure").insertAdjacentHTML("beforebegin", notice);
     const list = document.getElementById("configs-list");
+    if (!CONFIGS.length) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-ico">🛠️</div>
+          <h2>Aucune config pour le moment</h2>
+          <p>Les configurations arrivent très bientôt. En attendant, explorez le comparateur :
+             plus de 900 composants y sont référencés.</p>
+          <a class="btn" href="compare.html">Ouvrir le comparateur</a>
+        </div>`;
+      return;
+    }
     CONFIGS.forEach((cfg, i) => {
       const total = configTotalText(cfg);
       const nb = cfg.components.length;
