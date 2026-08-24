@@ -184,3 +184,73 @@ produit** — soit autant de saisie manuelle que les prix eux-mêmes. En plus, A
 Fnac utilisent des protections anti-robot qui bloquent les serveurs comme GitHub, et leurs
 conditions d'utilisation l'interdisent le plus souvent. Les flux produits donnent la même
 information, en masse, légalement, et avec le lien affilié déjà inclus.
+
+---
+
+# ⚡ MISE À JOUR AUTOMATIQUE DES PRIX — les 3 sources
+
+Le bot tourne chaque matin à 6h sur GitHub, gratuitement. Il puise dans trois
+types de sources, que tu actives dans `sources.json`. Aucune n'exige d'audience.
+
+## 1. Boutiques à catalogue public — AUCUNE inscription
+
+Les boutiques **Shopify** et **WooCommerce** publient leur catalogue en JSON,
+par conception de leur plateforme :
+
+    Shopify      https://laboutique.fr/products.json?limit=250&page=1
+    WooCommerce  https://laboutique.fr/wp-json/wc/store/v1/products
+
+Le script `scripts/import-shops.js` les lit, reconnaît les produits et remplit
+les prix. C'est la voie la plus simple : zéro condition, mise à jour en temps réel.
+
+Comment trouver des boutiques exploitables : ouvre `laboutique.fr/products.json`
+dans ton navigateur. Si du texte JSON s'affiche, ajoute-la dans la section
+`boutiques` de `sources.json`. Ça marche surtout sur les **boutiques spécialisées**
+(watercooling, modding, PC sur mesure) — les gros comme LDLC ont leur propre
+plateforme et ne l'exposent pas.
+
+Le bot respecte le `robots.txt` de chaque boutique et attend 2 secondes entre
+chaque requête.
+
+## 2. Flux d'affiliation — inscription, mais SANS audience requise
+
+Contrairement à une idée répandue, ces plateformes ne demandent ni followers ni
+statut d'influenceur. Aucune ne publie de seuil de trafic :
+
+| Plateforme | Entrée | Ce que ça t'apporte |
+|---|---|---|
+| **Tradedoubler** | token en self-service | **Digitec / Galaxus** → couvre la Suisse ET la Belgique, avec prix, historique de prix, EAN, stock et frais de port |
+| **Awin** | dépôt de 5 € remboursé, validation ~2 jours | Cdiscount et d'autres enseignes high-tech françaises |
+| **Rakuten Advertising** | site en ligne avec du contenu original | Marketplace Rakuten |
+
+Chaque annonceur valide ensuite individuellement. Un site vide se fait refuser —
+le tien ne l'est plus, c'est justement pour ça qu'il fallait le mettre en ligne.
+
+## 3. Fichiers — n'importe quel CSV ou XML
+
+`scripts/import-feed.js` avale n'importe quel fichier contenant nom + prix,
+qu'il vienne d'une plateforme d'affiliation ou d'ailleurs. Tu indiques juste le
+nom des colonnes dans `sources.json`.
+
+---
+
+# 📉 DÉTECTION AUTOMATIQUE DES BAISSES
+
+Aucune saisie, aucune date de péremption à renseigner. Le bot enregistre les prix
+chaque jour ; le site compare le prix du jour au plus haut des 30 derniers jours :
+
+- baisse d'au moins 2 % → badge **📉 −50 € (10 %)**
+- prix jamais vu aussi bas → badge **⭐ prix le plus bas**
+
+Ça fonctionne quelle que soit la source des prix, et ça se met à jour tout seul
+à chaque passage du bot.
+
+---
+
+# ⚠️ Ce que le bot ne fait pas
+
+Il ne parcourt pas les pages HTML des marchands. Cette technique est interdite par
+les conditions d'utilisation de nombreux sites (Topbiz le refuse explicitement dans
+son robots.txt), bloquée par les protections anti-robot des gros marchands, et elle
+casse à chaque refonte de site. Les trois sources ci-dessus donnent la même
+information de façon stable et légitime.

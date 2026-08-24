@@ -390,3 +390,7 @@ header.site { padding: 8px 22px; }
   header.site .logo { font-size: 1.2rem; }
 }
 .auto-badge { font-size:.68rem; padding:2px 7px; border-radius:999px; background:rgba(91,140,255,.16); color:#a9c4ff; font-weight:600; }
+.drop-badge { font-size:.74rem; font-weight:700; padding:3px 9px; border-radius:999px;
+  background:linear-gradient(135deg,#12b981,#0ea5a5); color:#04211a; }
+.lowest-badge { font-size:.72rem; font-weight:700; padding:3px 9px; border-radius:999px;
+  background:rgba(255,184,77,.18); color:#ffce80; }

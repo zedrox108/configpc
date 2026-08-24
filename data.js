@@ -45,6 +45,8 @@ const MERCHANTS = {
 
 
 
+  "mrwatercooling-fr": { name:"Mr Watercooling", flag:"fr", cur:"EUR", shipsTo:["fr"] },
+
   /* ---- Marketplaces & enseignes FRANCE ---- */
   "rakuten-fr":     { name:"Rakuten", flag:"fr", cur:"EUR", shipsTo:["fr","be"],
                       warn:"Marketplace : la livraison et la garantie dépendent du vendeur." },

@@ -1,65 +1,110 @@
 {
-  "_lisezmoi": [
-    "Chaque entrée = un flux produits d'un marchand ou d'une plateforme d'affiliation.",
-    "Le bot télécharge le flux, reconnaît les produits du catalogue et remplit les prix tout seul.",
-    "actif: false  -> le flux est ignoré (mets true quand tu as tes identifiants).",
-    "format: 'csv' | 'xml'",
-    "champs: indique le NOM DE COLONNE du flux pour chaque information.",
-    "Où obtenir des flux : Awin, Effiliation, TradeDoubler, Kwanko (validation du site requise),",
-    "AliExpress Portals (inscription libre), Amazon PA-API (3 ventes requises)."
-  ],
-
-  "flux": [
-    {
-      "nom": "Exemple de démonstration (fichier local)",
-      "actif": true,
-      "marchand": "ldlc-fr",
-      "url": "scripts/exemple-flux.csv",
-      "format": "csv",
-      "separateur": ";",
-      "champs": {
-        "nom": "product_name",
-        "prix": "price",
-        "port": "shipping_cost",
-        "lien": "product_url",
-        "stock": "in_stock",
-        "ean": "ean",
-        "marque": "brand"
-      }
-    },
-    {
-      "nom": "Awin — LDLC (à compléter)",
-      "actif": false,
-      "marchand": "ldlc-fr",
-      "url": "https://productdata.awin.com/datafeed/download/apikey/TON_API_KEY/language/fr/fid/TON_FEED_ID/format/csv/delimiter/%2C/compression/gzip/",
-      "format": "csv",
-      "separateur": ",",
-      "champs": {
-        "nom": "product_name",
-        "prix": "search_price",
-        "port": "delivery_cost",
-        "lien": "aw_deep_link",
-        "stock": "in_stock",
-        "ean": "ean",
-        "marque": "brand_name"
-      }
-    },
-    {
-      "nom": "AliExpress Portals (à compléter)",
-      "actif": false,
-      "marchand": "aliexpress-fr",
-      "url": "",
-      "format": "csv",
-      "separateur": ",",
-      "champs": {
-        "nom": "product_title",
-        "prix": "sale_price",
-        "port": "",
-        "lien": "promotion_link",
-        "stock": "",
-        "ean": "",
-        "marque": "brand"
-      }
-    }
-  ]
+ "_lisezmoi": [
+  "Trois façons d'alimenter les prix, toutes automatiques :",
+  "",
+  "1) BOUTIQUES A CATALOGUE PUBLIC (section 'boutiques') — aucune inscription.",
+  "   Les boutiques Shopify et WooCommerce exposent leur catalogue en JSON par",
+  "   conception de leur plateforme. Le bot le lit chaque matin. Zero condition.",
+  "",
+  "2) FLUX D'AFFILIATION (section 'flux') — inscription, sans audience requise.",
+  "   Tradedoubler : token en self-service, donne Digitec/Galaxus (Suisse + Belgique),",
+  "     avec prix, historique de prix, EAN, stock et frais de port.",
+  "   Awin : depot de 5 EUR rembourse, validation ~2 jours, donne Cdiscount et d'autres.",
+  "   Rakuten Advertising : demande un site en ligne avec du contenu original.",
+  "   Aucune de ces plateformes ne publie de seuil de trafic ou d'audience.",
+  "",
+  "3) FICHIERS (section 'flux' avec une url locale) — n'importe quel CSV/XML que tu obtiens."
+ ],
+ "flux": [
+  {
+   "nom": "Exemple de démonstration (fichier local)",
+   "actif": true,
+   "marchand": "ldlc-fr",
+   "url": "scripts/exemple-flux.csv",
+   "format": "csv",
+   "separateur": ";",
+   "champs": {
+    "nom": "product_name",
+    "prix": "price",
+    "port": "shipping_cost",
+    "lien": "product_url",
+    "stock": "in_stock",
+    "ean": "ean",
+    "marque": "brand"
+   }
+  },
+  {
+   "nom": "Tradedoubler — Galaxus / Digitec (a completer)",
+   "actif": false,
+   "marchand": "galaxus-ch",
+   "url": "https://api.tradedoubler.com/1.0/products?token=TON_TOKEN&limit=1000",
+   "format": "xml",
+   "separateur": ",",
+   "champs": {
+    "nom": "name",
+    "prix": "price",
+    "port": "shippingCost",
+    "lien": "productUrl",
+    "stock": "availability",
+    "ean": "ean",
+    "marque": "manufacturer"
+   }
+  },
+  {
+   "nom": "Awin — LDLC (à compléter)",
+   "actif": false,
+   "marchand": "ldlc-fr",
+   "url": "https://productdata.awin.com/datafeed/download/apikey/TON_API_KEY/language/fr/fid/TON_FEED_ID/format/csv/delimiter/%2C/compression/gzip/",
+   "format": "csv",
+   "separateur": ",",
+   "champs": {
+    "nom": "product_name",
+    "prix": "search_price",
+    "port": "delivery_cost",
+    "lien": "aw_deep_link",
+    "stock": "in_stock",
+    "ean": "ean",
+    "marque": "brand_name"
+   }
+  },
+  {
+   "nom": "AliExpress Portals (à compléter)",
+   "actif": false,
+   "marchand": "aliexpress-fr",
+   "url": "",
+   "format": "csv",
+   "separateur": ",",
+   "champs": {
+    "nom": "product_title",
+    "prix": "sale_price",
+    "port": "",
+    "lien": "promotion_link",
+    "stock": "",
+    "ean": "",
+    "marque": "brand"
+   }
+  }
+ ],
+ "boutiques": [
+  {
+   "nom": "Mr Watercooling (France)",
+   "actif": true,
+   "marchand": "mrwatercooling-fr",
+   "domaine": "https://mr-watercooling.fr",
+   "plateforme": "shopify",
+   "pays": "fr",
+   "devise": "EUR",
+   "port_par_defaut": 0
+  },
+  {
+   "nom": "Exemple boutique WooCommerce (a completer)",
+   "actif": false,
+   "marchand": "",
+   "domaine": "https://exemple-boutique.fr",
+   "plateforme": "woocommerce",
+   "pays": "fr",
+   "devise": "EUR",
+   "port_par_defaut": 0
+  }
+ ]
 }

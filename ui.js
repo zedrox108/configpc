@@ -226,3 +226,32 @@ function attachAutoOffers(products) {
     auto.forEach(a => { if (!p.offers.some(x => x.id === a.id)) p.offers.push(a); });
   });
 }
+
+
+/* ============ Détection automatique des baisses de prix ============ */
+/* Compare le prix du jour au prix le plus bas des 30 derniers jours.
+   Aucune saisie : dès qu'un prix descend, le badge apparaît tout seul. */
+function baisseDePrix(offerId, prixActuel) {
+  if (!HISTORY || !HISTORY[offerId]) return null;
+  const pts = HISTORY[offerId].points || [];
+  if (pts.length < 2) return null;
+
+  const limite = Date.now() - 30 * 86400000;
+  const recents = pts.filter(p => new Date(p.d).getTime() >= limite);
+  const serie = (recents.length >= 2 ? recents : pts).slice(0, -1);   // hors relevé du jour
+  if (!serie.length) return null;
+
+  const avant = Math.max(...serie.map(p => p.p));
+  const bas   = Math.min(...pts.map(p => p.p));
+  if (prixActuel >= avant) return null;
+
+  const ecart = avant - prixActuel;
+  const pct = avant ? (ecart / avant) * 100 : 0;
+  if (pct < 2) return null;                       // on ignore le bruit
+
+  return {
+    ecart, pct,
+    ancien: avant,
+    plusBasJamaisVu: prixActuel <= bas
+  };
+}

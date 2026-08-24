@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Comparateur de prix — ConfigPC</title>
-<link rel="stylesheet" href="style.css?v=12">
+<link rel="stylesheet" href="style.css?v=13">
 </head>
 <body>
 <header class="site">
@@ -38,7 +38,7 @@
 
 <footer class="site">© <span id="year"></span> ConfigPC — <a href="index.html">Accueil</a></footer>
 
-<script src="ui.js?v=12"></script>
+<script src="ui.js?v=13"></script>
 <script>
   function loadScript(src){ return new Promise((ok,ko)=>{
     const s=document.createElement('script'); s.src=src+'?t='+Date.now();
@@ -109,8 +109,14 @@
       const port = o.shipping > 0 ? `+ ${fmtMoney(o.shipping, M.cur)} port` : "port offert";
       const conv = offerIsForeignCurrency(o)
         ? `<span class="conv">≈ ${fmtMoney(offerTotalIn(o), countryCurrency())}</span>` : "";
-      const promo = (o.promo && o.promo.active)
+      let promo = (o.promo && o.promo.active)
         ? `<span class="promo-badge">🔥 Promo</span><span class="countdown" data-end="${o.promo.endDate||''}"></span>` : "";
+      // baisse détectée automatiquement par le bot
+      const b = baisseDePrix(o.id, offerTotal(o));
+      if (b) promo += `<span class="drop-badge">📉 −${fmtMoney(b.ecart, M.cur)} (${b.pct.toFixed(0)} %)</span>` +
+        (b.plusBasJamaisVu ? `<span class="lowest-badge">⭐ prix le plus bas</span>` : '');
+      if (o.ancien_prix && o.ancien_prix > o.price)
+        promo += `<span class="promo-badge">🔥 −${fmtMoney(o.ancien_prix - o.price, M.cur)}</span>`;
       return `
         <div class="offer-line ${isBest?'best':''}">
           <div class="offer-merchant">
