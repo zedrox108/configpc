@@ -130,3 +130,57 @@ C'est l'étape suivante, et la plus difficile. Deux voies possibles :
 
 C'est pour ça que l'ordre logique reste : lancer le site → obtenir les premières ventes →
 débloquer les flux d'affiliation → brancher l'automatisation sur le bot déjà en place.
+
+---
+
+# 🤖 LE BOT DE PRIX AUTOMATIQUE
+
+## Le principe
+
+Tu ne saisis plus aucun prix. Le bot télécharge des **flux produits** (des fichiers que
+les marchands publient, contenant nom + prix + stock + lien + code-barres pour des milliers
+de références), reconnaît tout seul les produits de ton catalogue, et remplit `offers.json`.
+
+    sources.json  →  scripts/import-feed.js  →  offers.json  →  le site affiche les prix
+                                              ↘  scripts/snapshot.js → history.json → courbes
+
+Tout ça tourne chaque jour à 6h sur GitHub, gratuitement.
+
+## Comment brancher un vrai flux
+
+1. Inscris-toi sur une plateforme d'affiliation et récupère l'URL de ton flux :
+   - **AliExpress Portals** — inscription libre, aucun seuil. Le plus simple pour démarrer.
+   - **Awin / Effiliation / Kwanko / TradeDoubler** — validation de ton site requise.
+     C'est là que se trouvent LDLC, Materiel.net, TopAchat, Cdiscount, Fnac, Rakuten…
+   - **Amazon PA-API** — nécessite 3 ventes pour ouvrir l'accès, puis 10 tous les 30 jours.
+2. Ouvre `sources.json`, complète l'entrée correspondante (`url`, noms de colonnes),
+   et passe `actif` à `true`.
+3. C'est tout. Le prochain passage du bot remplit les prix automatiquement.
+
+## La reconnaissance automatique des produits
+
+C'est le cœur du bot. Il compare le nom du flux au nom du catalogue avec des règles strictes :
+
+- **Tous les nombres du nom catalogue doivent être présents dans le flux.** Une RTX 5070
+  ne peut donc jamais être confondue avec une 5070 Ti, ni une alim 750 W avec une 850 W.
+- **Un mot distinctif manquant fait chuter le score.** C'est ce qui empêche de confondre
+  « Pure Power » et « Straight Power ».
+- **En cas d'égalité entre deux produits, le bot refuse.** Mieux vaut aucun prix qu'un faux prix.
+
+Résultat : sur le flux de démonstration, 14 produits sur 15 sont reconnus, et le seul refus
+est justifié (le produit n'existe pas dans le catalogue).
+
+Le rapport de chaque passage est écrit dans `rapport-bot.json` : nombre de lignes lues,
+produits reconnus, et exemples de non-reconnus pour que tu puisses compléter ton catalogue.
+
+Pour tester en local et voir le détail :
+
+    DEBUG_BOT=1 node scripts/import-feed.js
+
+## Pourquoi pas du scraping ?
+
+Un robot qui lit les pages des marchands a besoin de **connaître l'adresse de chaque fiche
+produit** — soit autant de saisie manuelle que les prix eux-mêmes. En plus, Amazon, LDLC et
+Fnac utilisent des protections anti-robot qui bloquent les serveurs comme GitHub, et leurs
+conditions d'utilisation l'interdisent le plus souvent. Les flux produits donnent la même
+information, en masse, légalement, et avec le lien affilié déjà inclus.

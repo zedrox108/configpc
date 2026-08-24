@@ -198,3 +198,31 @@ function frDate(iso) {
   const [y, m, d] = String(iso).split('-');
   return `${d}/${m}/${String(y).slice(2)}`;
 }
+
+/* ============ Offres remplies automatiquement par le bot ============ */
+let AUTO_OFFERS = null;
+
+function loadAutoOffers() {
+  return fetch('offers.json?t=' + Date.now())
+    .then(r => r.ok ? r.json() : {})
+    .then(o => { AUTO_OFFERS = o; return o; })
+    .catch(() => { AUTO_OFFERS = {}; return {}; });
+}
+
+/* Rattache les offres du bot aux produits du catalogue */
+function attachAutoOffers(products) {
+  if (!AUTO_OFFERS || !products) return;
+  const parProduit = {};
+  Object.entries(AUTO_OFFERS).forEach(([id, o]) => {
+    (parProduit[o.produit] = parProduit[o.produit] || []).push({
+      id, m: o.m, price: o.price, shipping: o.shipping || 0,
+      url: o.url, stock: o.stock || 'ok', auto: true, maj: o.maj
+    });
+  });
+  products.forEach(p => {
+    const auto = parProduit[p.id];
+    if (!auto) return;
+    p.offers = p.offers || [];
+    auto.forEach(a => { if (!p.offers.some(x => x.id === a.id)) p.offers.push(a); });
+  });
+}

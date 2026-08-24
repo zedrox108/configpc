@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Comparateur de prix — ConfigPC</title>
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 <header class="site">
@@ -38,14 +38,16 @@
 
 <footer class="site">© <span id="year"></span> ConfigPC — <a href="index.html">Accueil</a></footer>
 
-<script src="ui.js?v=11"></script>
+<script src="ui.js?v=12"></script>
 <script>
   function loadScript(src){ return new Promise((ok,ko)=>{
     const s=document.createElement('script'); s.src=src+'?t='+Date.now();
     s.onload=ok; s.onerror=ko; document.head.appendChild(s); }); }
   const sc = { onerror:null };
   Promise.all([loadScript('data.js'), loadScript('products.js')])
-    .then(()=>loadHistory()).then(initCompare)
+    .then(()=>Promise.all([loadHistory(), loadAutoOffers()]))
+    .then(()=>{ if (typeof PRODUCTS !== 'undefined') attachAutoOffers(PRODUCTS); })
+    .then(initCompare)
     .catch(()=>{ document.getElementById('results').innerHTML =
       '<div class="error-box"><h2>Erreur</h2><p>Impossible de charger le catalogue.</p></div>'; });
   const _unused = () => {
@@ -84,15 +86,15 @@
     });
 
     const ALIAS = {
-      "Stockage":"ssd nvme m2 disque dur sata stockage",
-      "GPU":"gpu carte graphique vga geforce radeon arc",
-      "CPU":"cpu processeur ryzen intel core",
-      "RAM":"ram memoire memoire vive ddr4 ddr5 barrette",
-      "Carte mère":"carte mere motherboard mobo chipset socket",
-      "Alimentation":"alimentation psu bloc watt",
+      "Stockage":"ssd nvme disque dur stockage",
+      "GPU":"gpu carte graphique",
+      "CPU":"cpu processeur",
+      "RAM":"ram memoire vive barrette",
+      "Carte mère":"carte mere motherboard mobo",
+      "Alimentation":"alimentation psu bloc",
       "Boîtier":"boitier case tour",
-      "Refroidissement":"refroidissement ventirad watercooling aio radiateur",
-      "Ventilateur":"ventilateur fan ventilo rgb"
+      "Refroidissement":"refroidissement ventirad watercooling aio",
+      "Ventilateur":"ventilateur ventilo"
     };
     const norm = s => String(s||'').toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g,'')   // enlève les accents
@@ -114,7 +116,7 @@
           <div class="offer-merchant">
             ${isBest ? '<span class="best-tag">Le moins cher</span>' : ''}
             <span class="m-name">${flagSVG(M.flag)}${M.name}</span>
-            <span class="m-sub">${port} ${stock}</span>
+            <span class="m-sub">${port} ${stock}${o.auto?` <span class="auto-badge" title="Prix relevé automatiquement le ${o.maj||''}">🤖 auto</span>`:''}</span>
             ${promo ? `<div class="promo-line">${promo}</div>` : ""}
             ${M.warn ? `<div class="merchant-warn">⚠ ${M.warn}</div>` : ""}
           </div>

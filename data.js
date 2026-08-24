@@ -44,6 +44,39 @@ const MERCHANTS = {
   "interdiscount-ch": { name:"Interdiscount", flag:"ch", cur:"CHF", shipsTo:["ch"] },
 
 
+
+  /* ---- Marketplaces & enseignes FRANCE ---- */
+  "rakuten-fr":     { name:"Rakuten", flag:"fr", cur:"EUR", shipsTo:["fr","be"],
+                      warn:"Marketplace : la livraison et la garantie dépendent du vendeur." },
+  "joybuy-fr":      { name:"JoyBuy", flag:"fr", cur:"EUR", shipsTo:["fr"],
+                      warn:"Marketplace européenne de JD.com — vérifier le vendeur et les délais." },
+  "cybertek-fr":    { name:"Cybertek", flag:"fr", cur:"EUR", shipsTo:["fr","be"],
+                      warn:"Belgique : uniquement les produits vendus et expédiés par Cybertek." },
+  "fnac-fr":        { name:"Fnac", flag:"fr", cur:"EUR", shipsTo:["fr"],
+                      warn:"Attention aux offres marketplace, différentes du stock Fnac." },
+  "reichelt-fr":    { name:"Reichelt", flag:"fr", cur:"EUR", shipsTo:["fr"],
+                      warn:"Expédition depuis l'Allemagne." },
+  "infomax-fr":     { name:"Infomax Paris", flag:"fr", cur:"EUR", shipsTo:["fr"] },
+  "1fodiscount-fr": { name:"1FODiscount", flag:"fr", cur:"EUR", shipsTo:["fr","be"] },
+  "topbiz-fr":      { name:"Topbiz", flag:"fr", cur:"EUR", shipsTo:["fr"] },
+
+  /* ---- Enseignes BELGIQUE ---- */
+  "joybuy-be":      { name:"JoyBuy", flag:"be", cur:"EUR", shipsTo:["be"],
+                      warn:"Marketplace européenne de JD.com — vérifier le vendeur et les délais." },
+  "fnac-be":        { name:"Fnac.be", flag:"be", cur:"EUR", shipsTo:["be"] },
+  "compumsa-be":    { name:"CompuMSA", flag:"be", cur:"EUR", shipsTo:["fr","be"] },
+
+  /* ---- Enseignes SUISSE ---- */
+  "fnac-ch":        { name:"Fnac.ch", flag:"ch", cur:"CHF", shipsTo:["ch"] },
+  "reichelt-ch":    { name:"Reichelt", flag:"ch", cur:"CHF", shipsTo:["ch"],
+                      warn:"Boutique suisse : prix en CHF, douane affichée à la commande." },
+  "rakuten-ch":     { name:"Rakuten", flag:"fr", cur:"EUR", shipsTo:["ch"],
+                      warn:"Hors UE : douane et TVA suisse à la charge de l'acheteur, selon le vendeur." },
+
+  /* ---- Allemagne livrant dans les 3 pays ---- */
+  "caseking-de":    { name:"Caseking", flag:"de", cur:"EUR", shipsTo:["fr","be","ch"],
+                      warn:"Expédition depuis l'Allemagne. Vers la Suisse : douane et TVA suisse en supplément." },
+
   /* ---- ALIEXPRESS (marketplace mondiale, livre dans les 3 pays) ---- */
   "aliexpress-fr":  { name:"AliExpress", flag:"fr", cur:"EUR", shipsTo:["fr"],
                       warn:"Garantie et retours compliqués (SAV en Chine) — méfiance sur les contrefaçons (RAM, SSD, cartes graphiques). Au-delà de 150 €, des droits de douane peuvent s'ajouter." },

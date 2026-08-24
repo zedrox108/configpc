@@ -1,0 +1,156 @@
+{
+ "cpu-amd-ryzen-7-9800x3d--ldlc-fr": {
+  "produit": "cpu-amd-ryzen-7-9800x3d",
+  "m": "ldlc-fr",
+  "price": 479.95,
+  "shipping": 0,
+  "url": "https://www.ldlc.com/fiche/exemple-9800x3d.html",
+  "stock": "ok",
+  "ean": "0730143316293",
+  "maj": "2026-08-24",
+  "source": "Exemple de démonstration (fichier local)"
+ },
+ "cpu-amd-ryzen-5-7600x--ldlc-fr": {
+  "produit": "cpu-amd-ryzen-5-7600x",
+  "m": "ldlc-fr",
+  "price": 209.9,
+  "shipping": 0,
+  "url": "https://www.ldlc.com/fiche/exemple-7600x.html",
+  "stock": "ok",
+  "ean": "0730143314497",
+  "maj": "2026-08-24",
+  "source": "Exemple de démonstration (fichier local)"
+ },
+ "cpu-intel-core-i5-14400f--ldlc-fr": {
+  "produit": "cpu-intel-core-i5-14400f",
+  "m": "ldlc-fr",
+  "price": 179.95,
+  "shipping": 0,
+  "url": "https://www.ldlc.com/fiche/exemple-14400f.html",
+  "stock": "ok",
+  "ean": "5032037278522",
+  "maj": "2026-08-24",
+  "source": "Exemple de démonstration (fichier local)"
+ },
+ "gpu-asus-geforce-rtx-5070-tuf-gaming-oc--ldlc-fr": {
+  "produit": "gpu-asus-geforce-rtx-5070-tuf-gaming-oc",
+  "m": "ldlc-fr",
+  "price": 679,
+  "shipping": 0,
+  "url": "https://www.ldlc.com/fiche/exemple-5070tuf.html",
+  "stock": "ok",
+  "ean": "4711387461234",
+  "maj": "2026-08-24",
+  "source": "Exemple de démonstration (fichier local)"
+ },
+ "gpu-msi-geforce-rtx-5070-ventus-3x-oc--ldlc-fr": {
+  "produit": "gpu-msi-geforce-rtx-5070-ventus-3x-oc",
+  "m": "ldlc-fr",
+  "price": 659.9,
+  "shipping": 0,
+  "url": "https://www.ldlc.com/fiche/exemple-5070ventus.html",
+  "stock": "ok",
+  "ean": "4711377112345",
+  "maj": "2026-08-24",
+  "source": "Exemple de démonstration (fichier local)"
+ },
+ "gpu-palit-geforce-rtx-5070-gamingpro-oc--ldlc-fr": {
+  "produit": "gpu-palit-geforce-rtx-5070-gamingpro-oc",
+  "m": "ldlc-fr",
+  "price": 649,
+  "shipping": 0,
+  "url": "https://www.ldlc.com/fiche/exemple-5070palit.html",
+  "stock": "out",
+  "ean": "4710636273456",
+  "maj": "2026-08-24",
+  "source": "Exemple de démonstration (fichier local)"
+ },
+ "stockage-samsung-990-pro-2-to--ldlc-fr": {
+  "produit": "stockage-samsung-990-pro-2-to",
+  "m": "ldlc-fr",
+  "price": 169.95,
+  "shipping": 0,
+  "url": "https://www.ldlc.com/fiche/exemple-990pro2to.html",
+  "stock": "ok",
+  "ean": "8806094215434",
+  "maj": "2026-08-24",
+  "source": "Exemple de démonstration (fichier local)"
+ },
+ "stockage-wd-black-sn850x-1-to--ldlc-fr": {
+  "produit": "stockage-wd-black-sn850x-1-to",
+  "m": "ldlc-fr",
+  "price": 99.95,
+  "shipping": 0,
+  "url": "https://www.ldlc.com/fiche/exemple-sn850x1to.html",
+  "stock": "ok",
+  "ean": "718037891234",
+  "maj": "2026-08-24",
+  "source": "Exemple de démonstration (fichier local)"
+ },
+ "ram-corsair-vengeance-ddr5-32-go-216-6000-cl30--ldlc-fr": {
+  "produit": "ram-corsair-vengeance-ddr5-32-go-216-6000-cl30",
+  "m": "ldlc-fr",
+  "price": 104.95,
+  "shipping": 0,
+  "url": "https://www.ldlc.com/fiche/exemple-veng6000.html",
+  "stock": "ok",
+  "ean": "840006645344",
+  "maj": "2026-08-24",
+  "source": "Exemple de démonstration (fichier local)"
+ },
+ "carte-mere-msi-mag-b650-tomahawk-wifi--ldlc-fr": {
+  "produit": "carte-mere-msi-mag-b650-tomahawk-wifi",
+  "m": "ldlc-fr",
+  "price": 209.95,
+  "shipping": 0,
+  "url": "https://www.ldlc.com/fiche/exemple-b650tomahawk.html",
+  "stock": "ok",
+  "ean": "4711377036986",
+  "maj": "2026-08-24",
+  "source": "Exemple de démonstration (fichier local)"
+ },
+ "boitier-fractal-design-north--ldlc-fr": {
+  "produit": "boitier-fractal-design-north",
+  "m": "ldlc-fr",
+  "price": 139.95,
+  "shipping": 0,
+  "url": "https://www.ldlc.com/fiche/exemple-north.html",
+  "stock": "ok",
+  "ean": "7350041088264",
+  "maj": "2026-08-24",
+  "source": "Exemple de démonstration (fichier local)"
+ },
+ "refroidissement-thermalright-peerless-assassin-120-se--ldlc-fr": {
+  "produit": "refroidissement-thermalright-peerless-assassin-120-se",
+  "m": "ldlc-fr",
+  "price": 39.9,
+  "shipping": 0,
+  "url": "https://www.ldlc.com/fiche/exemple-pa120se.html",
+  "stock": "ok",
+  "ean": "6975929100123",
+  "maj": "2026-08-24",
+  "source": "Exemple de démonstration (fichier local)"
+ },
+ "refroidissement-arctic-liquid-freezer-iii-360--ldlc-fr": {
+  "produit": "refroidissement-arctic-liquid-freezer-iii-360",
+  "m": "ldlc-fr",
+  "price": 89.95,
+  "shipping": 0,
+  "url": "https://www.ldlc.com/fiche/exemple-lf3-360.html",
+  "stock": "ok",
+  "ean": "4895213703185",
+  "maj": "2026-08-24",
+  "source": "Exemple de démonstration (fichier local)"
+ },
+ "ventilateur-noctua-nf-a12x25-pwm--ldlc-fr": {
+  "produit": "ventilateur-noctua-nf-a12x25-pwm",
+  "m": "ldlc-fr",
+  "price": 29.9,
+  "shipping": 0,
+  "url": "https://www.ldlc.com/fiche/exemple-nfa12x25.html",
+  "stock": "ok",
+  "ean": "9010018000306",
+  "maj": "2026-08-24",
+  "source": "Exemple de démonstration (fichier local)"
+ }
+}

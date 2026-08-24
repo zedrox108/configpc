@@ -1,1 +1,170 @@
-{}
+{
+ "gpu-asus-geforce-rtx-5070-tuf-gaming-oc--ldlc-fr": {
+  "product": "ASUS GeForce RTX 5070 TUF Gaming OC",
+  "category": "GPU",
+  "merchant": "LDLC",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-24",
+    "p": 679
+   }
+  ]
+ },
+ "gpu-msi-geforce-rtx-5070-ventus-3x-oc--ldlc-fr": {
+  "product": "MSI GeForce RTX 5070 Ventus 3X OC",
+  "category": "GPU",
+  "merchant": "LDLC",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-24",
+    "p": 659.9
+   }
+  ]
+ },
+ "gpu-palit-geforce-rtx-5070-gamingpro-oc--ldlc-fr": {
+  "product": "Palit GeForce RTX 5070 GamingPro OC",
+  "category": "GPU",
+  "merchant": "LDLC",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-24",
+    "p": 649
+   }
+  ]
+ },
+ "cpu-amd-ryzen-7-9800x3d--ldlc-fr": {
+  "product": "AMD Ryzen 7 9800X3D",
+  "category": "CPU",
+  "merchant": "LDLC",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-24",
+    "p": 479.95
+   }
+  ]
+ },
+ "cpu-amd-ryzen-5-7600x--ldlc-fr": {
+  "product": "AMD Ryzen 5 7600X",
+  "category": "CPU",
+  "merchant": "LDLC",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-24",
+    "p": 209.9
+   }
+  ]
+ },
+ "cpu-intel-core-i5-14400f--ldlc-fr": {
+  "product": "Intel Core i5-14400F",
+  "category": "CPU",
+  "merchant": "LDLC",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-24",
+    "p": 179.95
+   }
+  ]
+ },
+ "carte-mere-msi-mag-b650-tomahawk-wifi--ldlc-fr": {
+  "product": "MSI MAG B650 Tomahawk WiFi",
+  "category": "Carte mère",
+  "merchant": "LDLC",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-24",
+    "p": 209.95
+   }
+  ]
+ },
+ "ram-corsair-vengeance-ddr5-32-go-216-6000-cl30--ldlc-fr": {
+  "product": "Corsair Vengeance DDR5 32 Go (2×16) 6000 CL30",
+  "category": "RAM",
+  "merchant": "LDLC",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-24",
+    "p": 104.95
+   }
+  ]
+ },
+ "stockage-samsung-990-pro-2-to--ldlc-fr": {
+  "product": "Samsung 990 PRO 2 To",
+  "category": "Stockage",
+  "merchant": "LDLC",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-24",
+    "p": 169.95
+   }
+  ]
+ },
+ "stockage-wd-black-sn850x-1-to--ldlc-fr": {
+  "product": "WD Black SN850X 1 To",
+  "category": "Stockage",
+  "merchant": "LDLC",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-24",
+    "p": 99.95
+   }
+  ]
+ },
+ "boitier-fractal-design-north--ldlc-fr": {
+  "product": "Fractal Design North",
+  "category": "Boîtier",
+  "merchant": "LDLC",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-24",
+    "p": 139.95
+   }
+  ]
+ },
+ "refroidissement-thermalright-peerless-assassin-120-se--ldlc-fr": {
+  "product": "Thermalright Peerless Assassin 120 SE",
+  "category": "Refroidissement",
+  "merchant": "LDLC",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-24",
+    "p": 39.9
+   }
+  ]
+ },
+ "refroidissement-arctic-liquid-freezer-iii-360--ldlc-fr": {
+  "product": "Arctic Liquid Freezer III 360",
+  "category": "Refroidissement",
+  "merchant": "LDLC",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-24",
+    "p": 89.95
+   }
+  ]
+ },
+ "ventilateur-noctua-nf-a12x25-pwm--ldlc-fr": {
+  "product": "Noctua NF-A12x25 PWM",
+  "category": "Ventilateur",
+  "merchant": "LDLC",
+  "currency": "EUR",
+  "points": [
+   {
+    "d": "2026-08-24",
+    "p": 29.9
+   }
+  ]
+ }
+}

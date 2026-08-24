@@ -1,0 +1,15 @@
+{
+ "date": "2026-08-24T12:15:05.333Z",
+ "rapport": [
+  {
+   "flux": "Exemple de démonstration (fichier local)",
+   "lignes": 15,
+   "reconnus": 14,
+   "non_reconnus": 1,
+   "exemples_non_reconnus": [
+    "be quiet! Pure Power 12 M 750W"
+   ]
+  }
+ ],
+ "total_offres": 14
+}
