@@ -540,6 +540,7 @@ function ghPanneau(){
       <button class="btn btn-publier" id="gh-publier">🚀 Publier maintenant</button>
       <div class="row" style="margin-top:12px">
         <button class="btn secondary" id="gh-recharger">⤓ Recharger mes configs</button>
+        <button class="btn secondary" id="gh-tester">🩺 Tester la connexion</button>
         <button class="btn-mini danger" onclick="ghOublier()">Déconnecter cet appareil</button>
       </div>`;
   }
@@ -566,7 +567,10 @@ function ghPanneau(){
     <div class="hint">🔒 La clé reste enregistrée uniquement dans ce navigateur, sur cet appareil.
     Elle n'est jamais publiée sur le site. Ne la partage avec personne — elle donne le droit
     de modifier ce dépôt.</div>
-    <button class="btn" id="gh-connecter">Connecter</button>`;
+    <div class="row">
+      <button class="btn" id="gh-connecter">Connecter</button>
+      <button class="btn secondary" id="gh-tester-avant">🩺 Tester cette clé</button>
+    </div>`;
 }
 
 function brancherGH(){
@@ -587,6 +591,113 @@ function brancherGH(){
 
   const re = document.getElementById('gh-recharger');
   if (re) re.onclick = rechargerGitHub;
+
+  const te = document.getElementById('gh-tester');
+  if (te) te.onclick = () => diagnostic(ghConf());
+
+  const ta = document.getElementById('gh-tester-avant');
+  if (ta) ta.onclick = () => diagnostic({
+    token:  (document.getElementById('gh-token').value||'').trim(),
+    owner:  (document.getElementById('gh-owner').value||'').trim(),
+    repo:   (document.getElementById('gh-repo').value||'').trim(),
+    branch: (document.getElementById('gh-branch').value||'main').trim()
+  });
+}
+
+/* ---------- diagnostic : dit précisément ce qui ne va pas ---------- */
+async function diagnostic(g){
+  const R = t => ghMsg(t, 'diag');
+  R('⏳ Test en cours…');
+
+  if (!g.token) { R(`<b>❌ Aucune clé saisie.</b><br>Colle ta clé dans le champ ci-dessus.`); return; }
+
+  // 1) la clé a-t-elle la bonne allure ?
+  const t = g.token;
+  if (/\s/.test(t)) {
+    R(`<b>❌ La clé contient un espace.</b><br>Elle a été mal copiée.
+       Recopie-la entièrement, sans espace avant ni après.`); return;
+  }
+  if (!/^(github_pat_|ghp_)/.test(t)) {
+    R(`<b>❌ Ce n'est pas une clé GitHub.</b><br>
+       Une vraie clé commence par <code>github_pat_</code> (ou <code>ghp_</code>).
+       Tu as peut-être copié le <i>nom</i> de la clé au lieu de la clé elle-même.<br>
+       Elle n'est affichée qu'<b>une seule fois</b> juste après l'avoir créée :
+       si tu l'as perdue, il faut en générer une nouvelle.`); return;
+  }
+  if (t.length < 40) {
+    R(`<b>❌ La clé semble incomplète</b> (${t.length} caractères, il en faut bien plus).<br>
+       Sur téléphone, la copie s'arrête parfois trop tôt. Recopie-la en entier.`); return;
+  }
+
+  const entete = {
+    'Authorization': 'Bearer ' + t,
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+
+  try {
+    // 2) la clé est-elle valide ?
+    const u = await fetch('https://api.github.com/user', { headers: entete });
+    if (u.status === 401) {
+      R(`<b>❌ La clé est refusée par GitHub.</b><br>
+         Trois causes possibles :<br>
+         • elle a été mal copiée (recopie-la en entier)<br>
+         • elle a expiré<br>
+         • elle a été supprimée<br><br>
+         <b>Que faire :</b> retourne sur GitHub → Settings → Developer settings →
+         Personal access tokens → Fine-grained tokens → <b>Generate new token</b>,
+         et refais-en une neuve.`); return;
+    }
+    if (!u.ok) { R(`<b>❌ GitHub répond ${u.status}</b> sur la vérification du compte.`); return; }
+    const moi = await u.json();
+
+    // 3) le dépôt est-il accessible par cette clé ?
+    const r = await fetch(`https://api.github.com/repos/${g.owner}/${g.repo}`, { headers: entete });
+    if (r.status === 404) {
+      R(`<b>✅ La clé est valide</b> (compte <b>${moi.login}</b>)<br>
+         <b>❌ mais elle ne donne pas accès au dépôt « ${g.owner}/${g.repo} ».</b><br><br>
+         Deux causes possibles :<br>
+         • le nom du pseudo ou du dépôt est mal écrit ci-dessus<br>
+         • en créant la clé, tu n'as pas coché <b>Only select repositories</b>
+           puis choisi <b>${g.repo}</b><br><br>
+         <b>Que faire :</b> vérifie l'orthographe, sinon recrée la clé en sélectionnant
+         bien le dépôt.`); return;
+    }
+    if (!r.ok) { R(`<b>❌ GitHub répond ${r.status}</b> sur le dépôt.`); return; }
+    const depot = await r.json();
+
+    // 4) la clé a-t-elle le droit d'écrire ?
+    const peutEcrire = depot.permissions && depot.permissions.push;
+    if (!peutEcrire) {
+      R(`<b>✅ La clé est valide</b> (compte <b>${moi.login}</b>)<br>
+         <b>✅ Le dépôt ${depot.full_name} est bien trouvé</b><br>
+         <b>❌ mais la clé n'a pas le droit d'écrire.</b><br><br>
+         <b>Que faire :</b> recrée une clé et, dans <b>Repository permissions</b>,
+         mets la ligne <b>Contents</b> sur <b>Read and write</b> (et non « Read-only »).`); return;
+    }
+
+    // 5) le fichier configs.json existe-t-il ?
+    const f = await fetch(`https://api.github.com/repos/${g.owner}/${g.repo}/contents/configs.json?ref=${g.branch}`, { headers: entete });
+    const fichier = f.status === 200
+      ? '✅ Le fichier configs.json est bien présent'
+      : (f.status === 404
+          ? '⚠️ configs.json n\'existe pas encore — il sera créé à la première publication'
+          : `⚠️ Réponse ${f.status} sur configs.json`);
+
+    ghSave({ token: t, owner: g.owner, repo: g.repo, branch: g.branch });
+    R(`<b>🎉 Tout est bon !</b><br>
+       ✅ Clé valide — compte <b>${moi.login}</b><br>
+       ✅ Dépôt <b>${depot.full_name}</b> accessible<br>
+       ✅ Droit d'écriture confirmé<br>
+       ${fichier}<br><br>
+       Tu peux appuyer sur <b>Publier maintenant</b>.`);
+    setTimeout(rendre, 2500);
+
+  } catch(e) {
+    R(`<b>❌ Impossible de joindre GitHub.</b><br>
+       Vérifie ta connexion internet, puis réessaie.<br>
+       <small>${e.message}</small>`);
+  }
 }
 
 function ghMsg(t,c){ const el=document.getElementById('gh-msg'); if(el) el.innerHTML=`<div class="${c}">${t}</div>`; }
@@ -627,9 +738,9 @@ async function publierGitHub(){
     let sha = null;
     const lect = await ghApi(`configs.json?ref=${g.branch}`);
     if (lect.status === 200) { sha = (await lect.json()).sha; }
-    else if (lect.status === 401) throw new Error("clé refusée — vérifie ton token");
-    else if (lect.status === 404) sha = null;   // le fichier n'existe pas encore
-    else if (lect.status === 403) throw new Error("accès refusé — la clé n'a pas le droit « Contents : Read and write »");
+    else if (lect.status === 401) throw new Error("clé refusée. Appuie sur « 🩺 Tester la connexion » pour savoir précisément pourquoi.");
+    else if (lect.status === 404) sha = null;   // fichier absent OU dépôt inaccessible
+    else if (lect.status === 403) throw new Error("la clé n'a pas le droit d'écrire. Appuie sur « 🩺 Tester la connexion ».");
 
     // 2. on envoie la nouvelle version
     const contenu = JSON.stringify({ actives: DATA.actives, archive: DATA.archive }, null, 1);
@@ -644,7 +755,9 @@ async function publierGitHub(){
     });
     if (!env.ok) {
       const err = await env.json().catch(()=>({}));
-      throw new Error(err.message || ('erreur ' + env.status));
+      if (env.status === 404) throw new Error("dépôt introuvable avec cette clé. Appuie sur « 🩺 Tester la connexion » pour voir ce qui manque.");
+      if (env.status === 403) throw new Error("droit d'écriture manquant. Appuie sur « 🩺 Tester la connexion ».");
+      throw new Error((err.message || ('erreur ' + env.status)) + " — utilise « 🩺 Tester la connexion »");
     }
     ghMsg("✅ Publié ! Ton site sera à jour dans une minute environ.", 'ok-msg');
   } catch(e) {

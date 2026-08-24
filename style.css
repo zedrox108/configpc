@@ -567,3 +567,10 @@ header.site { padding: 8px 22px; }
 }
 .regle-or strong { color: var(--text); }
 .regle-or b { color: #dbe6ff; }
+.diag {
+  background: var(--bg-2); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+  border-radius: 10px; padding: 14px 16px; margin-top: 12px;
+  font-size: .88rem; line-height: 1.75; color: var(--muted);
+}
+.diag b { color: var(--text); }
+.diag code { background: var(--panel-2); padding: 1px 6px; border-radius: 5px; font-size: .85em; color: #9fe6c0; }
