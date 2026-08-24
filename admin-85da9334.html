@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="robots" content="noindex, nofollow">
+<title>Espace privé — ConfigPC</title>
+<link rel="stylesheet" href="style.css?v=20">
+</head>
+<body>
+<header class="site">
+  <a class="logo" href="index.html"><img class="logo-img" src="logo.png" alt="ConfigPC">Config<span>PC</span></a>
+  <div class="tag">🔒 Espace privé</div>
+</header>
+
+<main>
+  <div class="admin-wrap">
+    <div class="adm-tabs">
+      <button class="adm-tab active" data-v="actives">Mes configs</button>
+      <button class="adm-tab" data-v="archive">Historique</button>
+      <button class="adm-tab" data-v="export">Publier</button>
+    </div>
+    <div id="etat-local"></div>
+    <div id="vue"></div>
+  </div>
+</main>
+
+<input type="file" id="fichier-import" accept=".json,application/json" style="display:none">
+
+<script src="ui.js?v=20"></script>
+<script>
+let DATA = { actives: [], archive: [] };
+let PRODUITS = [];
+let vueActive = 'actives';
+
+function charger(src){ return new Promise((ok,ko)=>{
+  const s=document.createElement('script'); s.src=src+'?t='+Date.now();
+  s.onload=ok; s.onerror=ko; document.head.appendChild(s); }); }
+
+const EN_LOCAL = location.protocol === 'file:';
+
+Promise.all([charger('data.js'), charger('products.js')])
+  .then(()=> {
+    if (EN_LOCAL) return { actives:[], archive:[] };   // pas de fetch possible en local
+    return fetch('configs.json?t='+Date.now())
+      .then(r=>r.ok?r.json():{actives:[],archive:[]})
+      .catch(()=>({actives:[],archive:[]}));
+  })
+  .then(j=>{
+    DATA = { actives: j.actives||[], archive: j.archive||[] };
+    PRODUITS = (typeof PRODUCTS!=='undefined') ? PRODUCTS : [];
+    archiverExpirees();
+    bandeauLocal();
+    rendre();
+  })
+  .catch(()=>{ document.getElementById('vue').innerHTML =
+    '<div class="error-box">Impossible de charger les données. Vérifie que data.js et products.js sont dans le même dossier.</div>'; });
+
+/* bandeau d'état + import de configs.json */
+function bandeauLocal(){
+  const el = document.getElementById('etat-local');
+  el.innerHTML = `
+    <div class="local-bar ${EN_LOCAL?'prive':''}">
+      <div>
+        ${EN_LOCAL
+          ? '🔒 <strong>Mode privé</strong> — cette page tourne sur ton ordinateur, personne d\'autre n\'y a accès.'
+          : (ghConf().token
+              ? '📱 <strong>Mode en ligne</strong> — connecté à GitHub : tu peux publier d\'un bouton depuis cet appareil.'
+              : '🌐 <strong>Mode en ligne</strong> — va dans l\'onglet « Publier » pour connecter GitHub et publier en un clic.')}
+      </div>
+      <button class="btn-mini" onclick="document.getElementById('fichier-import').click()">
+        📂 Ouvrir un configs.json
+      </button>
+    </div>`;
+}
+
+document.getElementById('fichier-import').addEventListener('change', ev=>{
+  const f = ev.target.files[0];
+  if (!f) return;
+  const lecteur = new FileReader();
+  lecteur.onload = () => {
+    try {
+      const j = JSON.parse(lecteur.result);
+      DATA = { actives: j.actives||[], archive: j.archive||[] };
+      archiverExpirees();
+      vueActive = 'actives';
+      document.querySelectorAll('.adm-tab').forEach(x=>x.classList.remove('active'));
+      document.querySelector('.adm-tab[data-v="actives"]').classList.add('active');
+      rendre();
+      alert(`Chargé : ${DATA.actives.length} config(s) en ligne, ${DATA.archive.length} archivée(s).`);
+    } catch(e) { alert("Ce fichier n'est pas un configs.json valide."); }
+  };
+  lecteur.readAsText(f);
+  ev.target.value = '';
+});
+
+/* les configs dont le minuteur est écoulé partent à l'historique */
+function archiverExpirees(){
+  const reste = [];
+  DATA.actives.forEach(c=>{
+    if (configExpiree(c)) {
+      c.archiveLe = new Date().toISOString().slice(0,10);
+      c.motif = "minuteur écoulé";
+      c.prixFinal = configTotal(c);
+      DATA.archive.unshift(c);
+    } else reste.push(c);
+  });
+  DATA.actives = reste;
+}
+
+document.querySelectorAll('.adm-tab').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.adm-tab').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); vueActive = b.dataset.v; rendre();
+  });
+});
+
+function rendre(){
+  if (vueActive==='actives') vueActives();
+  else if (vueActive==='archive') vueArchive();
+  else vueExport();
+}
+
+/* ================== MES CONFIGS ================== */
+function vueActives(){
+  document.getElementById('vue').innerHTML = `
+    <div class="adm-card">
+      <div class="blk-head">
+        <h3 style="margin:0">Mes configurations (${DATA.actives.length})</h3>
+        <button class="btn" onclick="ajouterConfig()">+ Nouvelle config</button>
+      </div>
+      <p class="steps">Chaque config a un nom, une étiquette décorée, une gamme et un minuteur.
+      Quand le minuteur arrive à zéro, elle quitte le site et bascule dans l'historique.</p>
+    </div>
+    <div id="liste"></div>`;
+  listerConfigs();
+}
+
+function listerConfigs(){
+  const box = document.getElementById('liste');
+  if (!box) return;
+  if (!DATA.actives.length) {
+    box.innerHTML = `<div class="adm-card" style="text-align:center;color:var(--muted)">
+      Aucune config. Clique sur « + Nouvelle config » pour commencer.</div>`;
+    return;
+  }
+  box.innerHTML = DATA.actives.map((c,i)=>carteConfig(c,i)).join('');
+  brancherAutocompletes();
+}
+
+function carteConfig(c, ci){
+  const L = getLabel(c.label);
+  const T = getTier(c.tier);
+  return `
+  <div class="adm-card cfg-edit">
+    <div class="cfg-top">
+      <div class="field grow">
+        <label>Nom de la configuration</label>
+        <input value="${esc(c.name)}" placeholder="Ex : Config gaming 1440p"
+               oninput="maj(${ci},null,'name',this.value)">
+      </div>
+      <div class="field">
+        <label>Étiquette</label>
+        <select onchange="maj(${ci},null,'label',this.value); listerConfigs()">
+          <option value="">— aucune —</option>
+          ${Object.keys(LABELS).map(k=>`<option value="${k}" ${k===c.label?'selected':''}>${LABELS[k].nom}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field">
+        <label>Gamme</label>
+        <select onchange="maj(${ci},null,'tier',this.value); listerConfigs()">
+          ${Object.keys(TIERS).map(k=>`<option value="${k}" ${k===c.tier?'selected':''}>${TIERS[k].nom}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+
+    <div class="cfg-top">
+      <div class="field grow">
+        <label>Description (affichée sous le nom)</label>
+        <input value="${esc(c.description||'')}" placeholder="Ex : parfait pour la 1440p haute fréquence"
+               oninput="maj(${ci},null,'description',this.value)">
+      </div>
+      <div class="field">
+        <label>Valable jusqu'au (minuteur)</label>
+        <input type="datetime-local" value="${(c.expire||'').slice(0,16)}"
+               oninput="maj(${ci},null,'expire',this.value); listerConfigs()">
+      </div>
+    </div>
+
+    <div class="apercu-ligne">
+      <span class="apercu-label">Aperçu :</span>
+      ${L ? badgeLabel(L) : '<span style="color:var(--muted);font-size:.85rem">pas d&rsquo;étiquette</span>'}
+      ${T ? `<span class="tier-badge" style="--tc:${T.couleur}">${T.nom}</span>` : ''}
+      <span class="cfg-total-mini">Total : <strong>${configTotalText(c)}</strong></span>
+      ${c.expire ? `<span class="countdown-mini" data-end="${c.expire}"></span>` : ''}
+    </div>
+
+    <div class="section-label" style="margin:20px 4px 10px">Composants (${(c.components||[]).length})</div>
+    <div>${(c.components||[]).map((p,pi)=>blocComposant(c,ci,p,pi)).join('')}</div>
+
+    <div class="cfg-actions">
+      <button class="btn" onclick="ajouterComposant(${ci})">+ Ajouter un composant</button>
+      <button class="btn-mini danger" onclick="supprimerConfig(${ci})">Supprimer cette config</button>
+    </div>
+  </div>`;
+}
+
+function badgeLabel(L){
+  return `<span class="label-badge ${L.flocons?'snow':''}" style="background:${L.bg};color:${L.fg};border-color:${L.bord}">
+    ${L.deco?`<span class="deco">${L.deco}</span>`:''}${L.nom}</span>`;
+}
+
+function blocComposant(c, ci, p, pi){
+  const lt = p.linkType || 'direct';
+  return `
+  <div class="comp-block">
+    <div class="blk-head">
+      <strong>${p.category||'Composant'}${p.name?' — '+esc(p.name):''}</strong>
+      <button class="btn-mini danger" onclick="supprimerComposant(${ci},${pi})">✕</button>
+    </div>
+
+    <div class="field">
+      <label>Produit — tape les premières lettres puis choisis dans la liste</label>
+      <div class="ac-wrap">
+        <input class="ac-input" data-ci="${ci}" data-pi="${pi}" value="${esc(p.name||'')}"
+               placeholder="Ex : 7800x, rtx 5070 palit, b650 tomahawk…" autocomplete="off">
+        <div class="ac-list"></div>
+      </div>
+      ${p.spec?`<div class="spec-line">${esc(p.spec)}</div>`:''}
+    </div>
+
+    <div class="row">
+      <div class="field"><label>Catégorie</label>
+        <select onchange="maj(${ci},${pi},'category',this.value); listerConfigs()">
+          ${['CPU','GPU','RAM','Stockage','Carte mère','Alimentation','Boîtier','Refroidissement','Ventilateur','Écran','Autre']
+            .map(x=>`<option ${x===p.category?'selected':''}>${x}</option>`).join('')}
+        </select></div>
+      <div class="field"><label>Quantité</label>
+        <input type="number" min="1" value="${p.qty||1}" oninput="maj(${ci},${pi},'qty',parseInt(this.value)||1)"></div>
+      <div class="field"><label>Prix unitaire (€)</label>
+        <input type="number" step="0.01" value="${p.price||0}" oninput="maj(${ci},${pi},'price',parseFloat(this.value)||0)"></div>
+      <div class="field"><label>Frais de port (€)</label>
+        <input type="number" step="0.01" value="${p.shipping||0}" oninput="maj(${ci},${pi},'shipping',parseFloat(this.value)||0)"></div>
+    </div>
+
+    <div class="row">
+      <div class="field grow"><label>Boutique (le drapeau est celui de la boutique)</label>
+        <select onchange="maj(${ci},${pi},'m',this.value); listerConfigs()">
+          <option value="">— choisir —</option>
+          ${Object.keys(MERCHANTS).map(k=>`<option value="${k}" ${k===p.m?'selected':''}>${MERCHANTS[k].name} (${MERCHANTS[k].flag.toUpperCase()})</option>`).join('')}
+        </select></div>
+      <div class="field"><label>Type de lien</label>
+        <select onchange="maj(${ci},${pi},'linkType',this.value); listerConfigs()">
+          ${Object.keys(LINK_TYPES).map(k=>`<option value="${k}" ${k===lt?'selected':''}>${LINK_TYPES[k].nom}</option>`).join('')}
+        </select></div>
+    </div>
+
+    <div class="field"><label>Lien vers la fiche produit</label>
+      <input value="${esc(p.url||'')}" placeholder="https://www.ldlc.com/fiche/..." oninput="maj(${ci},${pi},'url',this.value)"></div>
+
+    ${lt==='affilie' ? `
+      <div class="field"><label>💶 Lien affilié (celui qui te rapporte la commission)</label>
+        <input value="${esc(p.affiliateUrl||'')}" placeholder="Lien tracké fourni par Awin, Tradedoubler, AliExpress…"
+               oninput="maj(${ci},${pi},'affiliateUrl',this.value)">
+        <div class="hint">C'est ce lien qui sera utilisé au clic. Le visiteur arrive directement sur le produit et la commission est comptée automatiquement.</div>
+      </div>` : ''}
+
+    ${lt==='passerelle' ? `
+      <div class="field"><label>🔁 Lien de passerelle rémunérée</label>
+        <input value="${esc(p.lockerUrl||'')}" placeholder="https://clk.sh/..." oninput="maj(${ci},${pi},'lockerUrl',this.value)">
+        <div class="hint">Au premier clic, le visiteur passe par cette page (qui te rémunère). Il revient ensuite et accède au produit au clic suivant.</div>
+      </div>` : ''}
+
+    ${lt==='direct' ? `<div class="hint">↗ Lien direct : aucun gain sur ce composant.</div>` : ''}
+
+    <div class="row">
+      <div class="field"><label>Stock</label>
+        <select onchange="maj(${ci},${pi},'stock',this.value); listerConfigs()">
+          ${[['ok','En stock'],['low','Stock faible'],['out','Épuisé']].map(([v,l])=>`<option value="${v}" ${v===p.stock?'selected':''}>${l}</option>`).join('')}
+        </select></div>
+      <div class="field grow"><label>Note personnelle (facultatif, affichée sur le site)</label>
+        <input value="${esc(p.note||'')}" placeholder="Ex : très bon rapport perf/prix" oninput="maj(${ci},${pi},'note',this.value)"></div>
+    </div>
+    <div class="comp-total">Sous-total : <strong>${fmtOffer(p)}</strong>${(p.qty||1)>1?` (${p.qty} × ${fmtMoney((p.price||0)+(p.shipping||0))})`:''}</div>
+  </div>`;
+}
+
+/* ---------------- autocomplétion sur les 1513 produits ---------------- */
+/* On garde "7800x3d" et "b650" entiers : c'est ce qui distingue un modèle
+   d'un autre. Taper "7800x" doit sortir le Ryzen 7800X3D, pas une RX 7800 XT. */
+function normal(s){
+  return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+}
+function chercherProduits(q){
+  const mots = normal(q).split(' ').filter(Boolean);
+  if (!mots.length) return [];
+  const trouves = [];
+  for (const p of PRODUITS) {
+    const nom = p._nn || (p._nn = normal(p.name));
+    const tout = p._n || (p._n = normal(p.name + ' ' + (p.spec||'')));
+    if (!mots.every(m => tout.includes(m))) continue;
+
+    // classement : on privilégie les correspondances nettes dans le NOM
+    let sc = 0;
+    const motsNom = nom.split(' ');
+    mots.forEach(m => {
+      if (motsNom.includes(m)) sc += 3;                       // mot entier du nom
+      else if (motsNom.some(x => x.startsWith(m))) sc += 2;    // début d'un mot (7800x → 7800x3d)
+      else if (nom.includes(m)) sc += 1;                       // ailleurs dans le nom
+    });
+    if (nom.startsWith(mots[0])) sc += 2;
+    sc -= nom.length * 0.01;                                   // à égalité, le nom le plus court gagne
+    trouves.push({ p, sc });
+  }
+  trouves.sort((a,b)=> b.sc - a.sc);
+  return trouves.slice(0, 40).map(x => x.p);
+}
+function brancherAutocompletes(){
+  document.querySelectorAll('.ac-input').forEach(inp=>{
+    const liste = inp.parentElement.querySelector('.ac-list');
+    const ci = +inp.dataset.ci, pi = +inp.dataset.pi;
+    let res = [];
+    const afficher = () => {
+      res = chercherProduits(inp.value);
+      DATA.actives[ci].components[pi].name = inp.value;
+      if (!res.length) { liste.classList.remove('open'); liste.innerHTML=''; return; }
+      liste.innerHTML = res.map((p,i)=>`
+        <button type="button" class="ac-item" data-i="${i}">
+          <span class="ac-cat">${p.category}</span>
+          <span class="ac-name">${p.name}</span>
+          ${p.spec?`<span class="ac-spec">${p.spec}</span>`:''}
+        </button>`).join('');
+      liste.classList.add('open');
+      liste.querySelectorAll('.ac-item').forEach(btn=>{
+        btn.addEventListener('mousedown', e=>{
+          e.preventDefault();
+          const p = res[+btn.dataset.i];
+          const comp = DATA.actives[ci].components[pi];
+          comp.name = p.name; comp.category = p.category; comp.spec = p.spec||''; comp.productId = p.id;
+          liste.classList.remove('open');
+          listerConfigs();
+        });
+      });
+    };
+    inp.addEventListener('input', afficher);
+    inp.addEventListener('focus', afficher);
+    inp.addEventListener('blur', ()=> setTimeout(()=>liste.classList.remove('open'), 150));
+  });
+  lancerMinuteurs();
+}
+
+/* ---------------- modifications ---------------- */
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function maj(ci, pi, cle, val){
+  if (pi==null) DATA.actives[ci][cle] = val;
+  else DATA.actives[ci].components[pi][cle] = val;
+  majApercu(ci);
+}
+function majApercu(ci){
+  const carte = document.querySelectorAll('.cfg-edit')[ci];
+  if (!carte) return;
+  const t = carte.querySelector('.cfg-total-mini strong');
+  if (t) t.textContent = configTotalText(DATA.actives[ci]);
+  carte.querySelectorAll('.comp-total').forEach((el,pi)=>{
+    const p = DATA.actives[ci].components[pi];
+    if (p) el.innerHTML = `Sous-total : <strong>${fmtOffer(p)}</strong>` +
+      ((p.qty||1)>1?` (${p.qty} × ${fmtMoney((p.price||0)+(p.shipping||0))})`:'');
+  });
+}
+function uid(p){ return p+'-'+Math.random().toString(36).slice(2,8); }
+
+function ajouterConfig(){
+  DATA.actives.unshift({
+    id: uid('cfg'), name:'Nouvelle configuration', description:'',
+    label:'', tier:'milieu', expire:'', components:[], cree: new Date().toISOString().slice(0,10)
+  });
+  listerConfigs();
+}
+function supprimerConfig(ci){
+  if (!confirm('Supprimer cette config ? Elle partira dans l\'historique.')) return;
+  const c = DATA.actives[ci];
+  c.archiveLe = new Date().toISOString().slice(0,10);
+  c.motif = 'supprimée manuellement';
+  c.prixFinal = configTotal(c);
+  DATA.archive.unshift(c);
+  DATA.actives.splice(ci,1);
+  listerConfigs();
+}
+function ajouterComposant(ci){
+  DATA.actives[ci].components.push({
+    id: uid('c'), category:'CPU', name:'', spec:'', productId:'',
+    qty:1, price:0, shipping:0, m:'', url:'', linkType:'direct',
+    affiliateUrl:'', lockerUrl:'', stock:'ok', note:''
+  });
+  listerConfigs();
+}
+function supprimerComposant(ci,pi){
+  DATA.actives[ci].components.splice(pi,1);
+  listerConfigs();
+}
+
+/* ---------------- minuteurs ---------------- */
+let minuteurLance = false;
+function lancerMinuteurs(){
+  const tick=()=>document.querySelectorAll('.countdown-mini[data-end]').forEach(el=>{
+    if(!el.dataset.end) return;
+    const end=new Date(el.dataset.end).getTime(); let d=end-Date.now();
+    if(isNaN(end)){el.textContent='';return;}
+    if(d<=0){el.textContent='⏱ expirée — passera à l\'historique';el.classList.add('fini');return;}
+    const j=Math.floor(d/86400000); d-=j*86400000;
+    const h=Math.floor(d/3600000); d-=h*3600000;
+    const m=Math.floor(d/60000);
+    el.textContent=`⏱ encore ${j}j ${h}h ${m}m`;
+  });
+  tick();
+  if (!minuteurLance) { minuteurLance = true; setInterval(tick, 30000); }
+}
+
+/* ================== HISTORIQUE ================== */
+function vueArchive(){
+  document.getElementById('vue').innerHTML = `
+    <div class="adm-card">
+      <h3>Historique des configurations (${DATA.archive.length})</h3>
+      <p class="steps">Les configs retirées du site : minuteur écoulé ou suppression manuelle.
+      Leur contenu et leur prix de l'époque sont conservés. Cette page n'est visible que par toi.</p>
+    </div>
+    ${DATA.archive.length ? DATA.archive.map((c,i)=>carteArchive(c,i)).join('')
+      : '<div class="adm-card" style="text-align:center;color:var(--muted)">Aucune config archivée pour le moment.</div>'}`;
+  lancerMinuteurs();
+}
+function carteArchive(c, i){
+  const L = getLabel(c.label), T = getTier(c.tier);
+  return `
+  <div class="adm-card arch-card">
+    <div class="blk-head">
+      <div>
+        <strong style="font-size:1.05rem">${esc(c.name)}</strong>
+        <div class="arch-meta">
+          ${L?badgeLabel(L):''}
+          ${T?`<span class="tier-badge" style="--tc:${T.couleur}">${T.nom}</span>`:''}
+          <span class="arch-date">Retirée le ${c.archiveLe||'?'} · ${c.motif||''}</span>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="price-label">Prix à l'époque</div>
+        <div class="config-price">${fmtMoney(c.prixFinal!=null?c.prixFinal:configTotal(c))}</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="arch-table">
+        <tr><th>Composant</th><th>Boutique</th><th>Prix</th><th>Lien</th></tr>
+        ${(c.components||[]).map(p=>{
+          const M = p.m?getMerchant(p.m):null;
+          return `<tr>
+            <td><span class="ac-cat">${p.category||''}</span> ${esc(p.name||'')}${(p.qty||1)>1?` ×${p.qty}`:''}</td>
+            <td>${M?flagSVG(M.flag)+' '+M.name:'—'}</td>
+            <td>${fmtOffer(p)}</td>
+            <td>${p.url?`<a href="${esc(p.url)}" target="_blank" rel="noopener">voir</a>`:'—'}</td>
+          </tr>`;
+        }).join('')}
+      </table>
+    </div>
+    <div class="cfg-actions">
+      <button class="btn-mini" onclick="restaurer(${i})">↩ Remettre en ligne</button>
+      <button class="btn-mini danger" onclick="supprimerArchive(${i})">Supprimer définitivement</button>
+    </div>
+  </div>`;
+}
+function restaurer(i){
+  const c = DATA.archive[i];
+  delete c.archiveLe; delete c.motif; c.expire = '';
+  DATA.actives.unshift(c); DATA.archive.splice(i,1);
+  alert('Config remise dans « Mes configs ». Pense à lui donner un nouveau minuteur.');
+  rendre();
+}
+function supprimerArchive(i){
+  if (!confirm('Suppression définitive, sans retour possible. Continuer ?')) return;
+  DATA.archive.splice(i,1); rendre();
+}
+
+/* ================== PUBLIER ================== */
+function ghConf(){
+  try { return JSON.parse(localStorage.getItem('cpc_gh')||'{}'); } catch(e){ return {}; }
+}
+function ghSave(o){ try { localStorage.setItem('cpc_gh', JSON.stringify(o)); } catch(e){} }
+function ghOublier(){
+  if (!confirm("Oublier la connexion GitHub sur cet appareil ?")) return;
+  try { localStorage.removeItem('cpc_gh'); } catch(e){}
+  rendre();
+}
+
+function vueExport(){
+  const json = JSON.stringify({ actives: DATA.actives, archive: DATA.archive }, null, 1);
+  const liens = DATA.actives.reduce((s,c)=>s+(c.components||[]).filter(p=>p.linkType!=='direct').length,0);
+  const comps = DATA.actives.reduce((s,c)=>s+(c.components||[]).length,0);
+  document.getElementById('vue').innerHTML = `
+    <div class="adm-card">
+      <h3>📤 Publier sur le site</h3>
+      <p class="steps">1. Clique sur <b>Copier</b> · 2. Ouvre <b>configs.json</b> sur GitHub ·
+      3. Clique sur le crayon ✏️ · 4. Tout sélectionner (Ctrl+A) · 5. Coller · 6. <b>Commit changes</b>.<br>
+      Ton site est à jour une minute plus tard.</p>
+      <p class="steps" style="margin-top:10px">💡 Garde aussi une copie du fichier sur ton PC
+      (bouton <b>Télécharger</b>) : c'est elle que tu rouvriras la prochaine fois avec
+      « 📂 Ouvrir un configs.json » pour reprendre ton travail.</p>
+      <textarea class="out" id="sortie" readonly></textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" onclick="copier()">📋 Copier</button>
+        <button class="btn secondary" onclick="telecharger()">💾 Télécharger configs.json</button>
+        <a class="btn secondary" href="https://github.com/zedrox108/configpc/edit/main/configs.json" target="_blank" rel="noopener">✏️ Ouvrir GitHub</a>
+      </div>
+      <div id="msg"></div>
+    </div>
+
+    <div class="adm-card">
+      <h3>📱 Publier directement (idéal depuis le téléphone)</h3>
+      ${ghPanneau()}
+      <div id="gh-msg"></div>
+    </div>
+
+    <div class="adm-card">
+      <h3>📊 Récapitulatif</h3>
+      <div class="recap">
+        <div><strong>${DATA.actives.length}</strong> config${DATA.actives.length>1?'s':''} en ligne</div>
+        <div><strong>${DATA.archive.length}</strong> dans l'historique</div>
+        <div><strong>${comps}</strong> composants au total</div>
+        <div><strong>${liens}</strong> lien${liens>1?'s':''} rémunéré${liens>1?'s':''}</div>
+      </div>
+    </div>`;
+  document.getElementById('sortie').value = json;
+  brancherGH();
+}
+
+function ghPanneau(){
+  const g = ghConf();
+  if (g.token) {
+    return `
+      <p class="steps">Connecté à <b>${g.owner}/${g.repo}</b>.
+      Un seul bouton et ton site est à jour — aucun copier-coller.</p>
+      <div class="row">
+        <button class="btn" id="gh-publier">🚀 Publier maintenant</button>
+        <button class="btn secondary" id="gh-recharger">⤓ Recharger depuis GitHub</button>
+        <button class="btn-mini danger" onclick="ghOublier()">Oublier cet appareil</button>
+      </div>`;
+  }
+  return `
+    <p class="steps">Connecte ton compte une seule fois sur cet appareil, puis tu publieras
+    d'un simple bouton, même depuis ton téléphone.<br><br>
+    <b>Comment obtenir ta clé :</b> sur GitHub → photo de profil → <b>Settings</b> →
+    tout en bas <b>Developer settings</b> → <b>Personal access tokens</b> →
+    <b>Fine-grained tokens</b> → <b>Generate new token</b>.<br>
+    Choisis <b>Only select repositories</b> → ton dépôt <b>configpc</b>, puis dans
+    <b>Repository permissions</b> mets <b>Contents</b> sur <b>Read and write</b>.
+    Copie la clé affichée (elle commence par <code>github_pat_</code>).</p>
+    <div class="row">
+      <div class="field"><label>Ton pseudo GitHub</label>
+        <input id="gh-owner" value="zedrox108" placeholder="zedrox108"></div>
+      <div class="field"><label>Nom du dépôt</label>
+        <input id="gh-repo" value="configpc" placeholder="configpc"></div>
+      <div class="field"><label>Branche</label>
+        <input id="gh-branch" value="main" placeholder="main"></div>
+    </div>
+    <div class="field"><label>Clé d'accès (token)</label>
+      <input id="gh-token" type="password" placeholder="github_pat_..." autocomplete="off"></div>
+    <div class="hint">🔒 La clé reste enregistrée uniquement dans ce navigateur, sur cet appareil.
+    Elle n'est jamais publiée sur le site. Ne la partage avec personne — elle donne le droit
+    de modifier ce dépôt.</div>
+    <button class="btn" id="gh-connecter">Connecter</button>`;
+}
+
+function brancherGH(){
+  const co = document.getElementById('gh-connecter');
+  if (co) co.onclick = () => {
+    const token = document.getElementById('gh-token').value.trim();
+    const owner = document.getElementById('gh-owner').value.trim();
+    const repo  = document.getElementById('gh-repo').value.trim();
+    const branch= document.getElementById('gh-branch').value.trim() || 'main';
+    if (!token || !owner || !repo) { ghMsg("Remplis le pseudo, le dépôt et la clé.", 'err-msg'); return; }
+    ghSave({ token, owner, repo, branch });
+    ghMsg("✅ Connecté. Tu peux publier d'un bouton.", 'ok-msg');
+    setTimeout(rendre, 700);
+  };
+
+  const pu = document.getElementById('gh-publier');
+  if (pu) pu.onclick = publierGitHub;
+
+  const re = document.getElementById('gh-recharger');
+  if (re) re.onclick = rechargerGitHub;
+}
+
+function ghMsg(t,c){ const el=document.getElementById('gh-msg'); if(el) el.innerHTML=`<div class="${c}">${t}</div>`; }
+
+function b64(str){
+  const octets = new TextEncoder().encode(str);
+  let bin = ''; octets.forEach(o => bin += String.fromCharCode(o));
+  return btoa(bin);
+}
+function deB64(b){
+  const bin = atob(b.replace(/\s/g,''));
+  const arr = new Uint8Array(bin.length);
+  for (let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+  return new TextDecoder().decode(arr);
+}
+
+async function ghApi(chemin, options){
+  const g = ghConf();
+  const r = await fetch(`https://api.github.com/repos/${g.owner}/${g.repo}/contents/${chemin}`, {
+    ...options,
+    headers: {
+      'Authorization': 'Bearer ' + g.token,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      ...(options && options.headers ? options.headers : {})
+    }
+  });
+  return r;
+}
+
+async function publierGitHub(){
+  const g = ghConf();
+  const btn = document.getElementById('gh-publier');
+  btn.disabled = true; btn.textContent = '⏳ Publication…';
+  ghMsg('', '');
+  try {
+    // 1. on récupère la version actuelle pour obtenir son identifiant
+    let sha = null;
+    const lect = await ghApi(`configs.json?ref=${g.branch}`);
+    if (lect.status === 200) { sha = (await lect.json()).sha; }
+    else if (lect.status === 401) throw new Error("clé refusée — vérifie ton token");
+    else if (lect.status === 404) sha = null;   // le fichier n'existe pas encore
+    else if (lect.status === 403) throw new Error("accès refusé — la clé n'a pas le droit « Contents : Read and write »");
+
+    // 2. on envoie la nouvelle version
+    const contenu = JSON.stringify({ actives: DATA.actives, archive: DATA.archive }, null, 1);
+    const env = await ghApi('configs.json', {
+      method: 'PUT',
+      body: JSON.stringify({
+        message: `Configs mises à jour (${DATA.actives.length} en ligne)`,
+        content: b64(contenu),
+        branch: g.branch,
+        ...(sha ? { sha } : {})
+      })
+    });
+    if (!env.ok) {
+      const err = await env.json().catch(()=>({}));
+      throw new Error(err.message || ('erreur ' + env.status));
+    }
+    ghMsg("✅ Publié ! Ton site sera à jour dans une minute environ.", 'ok-msg');
+  } catch(e) {
+    ghMsg("❌ " + e.message, 'err-msg');
+  } finally {
+    btn.disabled = false; btn.textContent = '🚀 Publier maintenant';
+  }
+}
+
+async function rechargerGitHub(){
+  const g = ghConf();
+  const btn = document.getElementById('gh-recharger');
+  btn.disabled = true; btn.textContent = '⏳ Chargement…';
+  try {
+    const r = await ghApi(`configs.json?ref=${g.branch}`);
+    if (!r.ok) throw new Error('erreur ' + r.status);
+    const j = JSON.parse(deB64((await r.json()).content));
+    DATA = { actives: j.actives||[], archive: j.archive||[] };
+    archiverExpirees();
+    ghMsg(`✅ Rechargé : ${DATA.actives.length} config(s), ${DATA.archive.length} archivée(s).`, 'ok-msg');
+    setTimeout(()=>{ vueActive='actives';
+      document.querySelectorAll('.adm-tab').forEach(x=>x.classList.remove('active'));
+      document.querySelector('.adm-tab[data-v="actives"]').classList.add('active');
+      rendre(); }, 900);
+  } catch(e) {
+    ghMsg("❌ " + e.message, 'err-msg');
+  } finally {
+    btn.disabled = false; btn.textContent = '⤓ Recharger depuis GitHub';
+  }
+}
+function copier(){
+  const t=document.getElementById('sortie'); t.select(); t.setSelectionRange(0,999999);
+  navigator.clipboard.writeText(t.value).then(
+    ()=>msg('✅ Copié — colle-le dans configs.json sur GitHub.','ok-msg'),
+    ()=>msg('Sélectionne le texte et copie-le à la main (Ctrl+C).','err-msg'));
+}
+function telecharger(){
+  const b=new Blob([document.getElementById('sortie').value],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='configs.json'; a.click();
+  msg('💾 Téléchargé — envoie-le sur GitHub à la place de l\'ancien.','ok-msg');
+}
+function msg(t,c){ document.getElementById('msg').innerHTML=`<div class="${c}">${t}</div>`; }
+</script>
+</body>
+</html>
