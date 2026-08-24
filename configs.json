@@ -1,4 +1,15 @@
 {
- "actives": [],
+ "actives": [
+  {
+   "id": "cfg-8c1sbp",
+   "name": "Nouvelle configurzezezefzeation",
+   "description": "",
+   "label": "",
+   "tier": "milieu",
+   "expire": "",
+   "components": [],
+   "cree": "2026-08-24"
+  }
+ ],
  "archive": []
 }
