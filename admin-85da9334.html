@@ -497,24 +497,7 @@ function vueExport(){
   const comps = DATA.actives.reduce((s,c)=>s+(c.components||[]).length,0);
   document.getElementById('vue').innerHTML = `
     <div class="adm-card">
-      <h3>📤 Publier sur le site</h3>
-      <p class="steps">1. Clique sur <b>Copier</b> · 2. Ouvre <b>configs.json</b> sur GitHub ·
-      3. Clique sur le crayon ✏️ · 4. Tout sélectionner (Ctrl+A) · 5. Coller · 6. <b>Commit changes</b>.<br>
-      Ton site est à jour une minute plus tard.</p>
-      <p class="steps" style="margin-top:10px">💡 Garde aussi une copie du fichier sur ton PC
-      (bouton <b>Télécharger</b>) : c'est elle que tu rouvriras la prochaine fois avec
-      « 📂 Ouvrir un configs.json » pour reprendre ton travail.</p>
-      <textarea class="out" id="sortie" readonly></textarea>
-      <div class="row" style="margin-top:10px">
-        <button class="btn" onclick="copier()">📋 Copier</button>
-        <button class="btn secondary" onclick="telecharger()">💾 Télécharger configs.json</button>
-        <a class="btn secondary" href="https://github.com/zedrox108/configpc/edit/main/configs.json" target="_blank" rel="noopener">✏️ Ouvrir GitHub</a>
-      </div>
-      <div id="msg"></div>
-    </div>
-
-    <div class="adm-card">
-      <h3>📱 Publier directement (idéal depuis le téléphone)</h3>
+      <h3>🚀 Publier</h3>
       ${ghPanneau()}
       <div id="gh-msg"></div>
     </div>
@@ -527,7 +510,20 @@ function vueExport(){
         <div><strong>${comps}</strong> composants au total</div>
         <div><strong>${liens}</strong> lien${liens>1?'s':''} rémunéré${liens>1?'s':''}</div>
       </div>
-    </div>`;
+    </div>
+
+    <details class="adm-card secours">
+      <summary>Méthode de secours (copier-coller)</summary>
+      <p class="steps">Si la publication automatique ne marche pas : copie ce texte,
+      ouvre <b>configs.json</b> sur GitHub, crayon ✏️, tout sélectionner, coller, <b>Commit changes</b>.</p>
+      <textarea class="out" id="sortie" readonly></textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="btn secondary" onclick="copier()">📋 Copier</button>
+        <button class="btn secondary" onclick="telecharger()">💾 Télécharger</button>
+        <a class="btn secondary" href="https://github.com/zedrox108/configpc/edit/main/configs.json" target="_blank" rel="noopener">✏️ Ouvrir GitHub</a>
+      </div>
+      <div id="msg"></div>
+    </details>`;
   document.getElementById('sortie').value = json;
   brancherGH();
 }
@@ -536,23 +532,27 @@ function ghPanneau(){
   const g = ghConf();
   if (g.token) {
     return `
-      <p class="steps">Connecté à <b>${g.owner}/${g.repo}</b>.
-      Un seul bouton et ton site est à jour — aucun copier-coller.</p>
-      <div class="row">
-        <button class="btn" id="gh-publier">🚀 Publier maintenant</button>
-        <button class="btn secondary" id="gh-recharger">⤓ Recharger depuis GitHub</button>
-        <button class="btn-mini danger" onclick="ghOublier()">Oublier cet appareil</button>
+      <p class="steps">✅ Cet appareil est connecté.</p>
+      <div class="regle-or">
+        <strong>La règle d'or</strong> — <b>Recharger</b> avant de commencer,
+        <b>Publier</b> après avoir fini. Comme ça, PC et téléphone restent d'accord.
+      </div>
+      <button class="btn btn-publier" id="gh-publier">🚀 Publier maintenant</button>
+      <div class="row" style="margin-top:12px">
+        <button class="btn secondary" id="gh-recharger">⤓ Recharger mes configs</button>
+        <button class="btn-mini danger" onclick="ghOublier()">Déconnecter cet appareil</button>
       </div>`;
   }
   return `
-    <p class="steps">Connecte ton compte une seule fois sur cet appareil, puis tu publieras
-    d'un simple bouton, même depuis ton téléphone.<br><br>
+    <div class="setup-note">⚙️ <strong>Réglage à faire une seule fois</strong> — après ça, publier
+    se résumera à un seul bouton, pour toujours, sur cet appareil.</div>
+    <p class="steps">
     <b>Comment obtenir ta clé :</b> sur GitHub → photo de profil → <b>Settings</b> →
     tout en bas <b>Developer settings</b> → <b>Personal access tokens</b> →
     <b>Fine-grained tokens</b> → <b>Generate new token</b>.<br>
     Choisis <b>Only select repositories</b> → ton dépôt <b>configpc</b>, puis dans
     <b>Repository permissions</b> mets <b>Contents</b> sur <b>Read and write</b>.
-    Copie la clé affichée (elle commence par <code>github_pat_</code>).</p>
+    Copie la clé affichée (elle commence par <code>github_pat_</code>) et colle-la ci-dessous.</p>
     <div class="row">
       <div class="field"><label>Ton pseudo GitHub</label>
         <input id="gh-owner" value="zedrox108" placeholder="zedrox108"></div>

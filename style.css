@@ -550,3 +550,20 @@ header.site { padding: 8px 22px; }
 }
 .local-bar.prive { border-left-color: var(--green); }
 .local-bar strong { color: var(--text); }
+.btn-publier { width: 100%; padding: 16px; font-size: 1.05rem; border-radius: 12px; justify-content: center; }
+.setup-note {
+  background: rgba(255,184,77,.08); border: 1px solid rgba(255,184,77,.28);
+  color: #ffd9a0; border-radius: 10px; padding: 11px 14px; margin-bottom: 14px; font-size: .87rem;
+}
+.setup-note strong { color: #ffe4b8; }
+.adm-card.secours { opacity: .75; }
+.adm-card.secours summary { cursor: pointer; font-weight: 600; font-size: .92rem; color: var(--muted); }
+.adm-card.secours summary:hover { color: var(--text); }
+.adm-card.secours[open] summary { margin-bottom: 12px; }
+.regle-or {
+  background: rgba(91,140,255,.08); border: 1px solid rgba(91,140,255,.28);
+  border-radius: 10px; padding: 11px 14px; margin: 12px 0 16px;
+  font-size: .86rem; color: #bcd0ff; line-height: 1.6;
+}
+.regle-or strong { color: var(--text); }
+.regle-or b { color: #dbe6ff; }
