@@ -4,131 +4,97 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-
 <title>Redirection — ConfigPC</title>
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=20">
 </head>
 <body>
 <header class="site">
   <a class="logo" href="index.html"><img class="logo-img" src="logo.png" alt="ConfigPC">Config<span>PC</span></a>
-  <nav class="mainnav">
-    <a href="index.html" class="navlink" data-p="index">Configs</a>
-    <a href="compare.html" class="navlink" data-p="compare">Comparateur</a>
-  </nav>
 </header>
+<main><div id="gateway"></div></main>
 
-<main>
-  <div id="gateway"></div>
-</main>
-
-<script src="ui.js?v=11"></script>
+<script src="ui.js?v=20"></script>
 <script>
-/**
- * PAGE PASSERELLE — logique :
- *  - offer.affiliate === true  -> avertissement puis redirection vers affiliateUrl (1 clic).
- *  - offer.affiliate === false -> étape 1 : avertissement + envoi vers lockerUrl (clk.sh).
- *                                 étape 2 (au retour) : bouton final vers le produit (offer.url).
- *  Configure affiliateUrl / lockerUrl dans data.js.
- */
-  const s = document.createElement('script');
-  s.src = 'data.js?t=' + Date.now();
-  s.onload = initGateway;
-  s.onerror = () => { document.getElementById('gateway').innerHTML =
-    '<div class="error-box"><h2>Erreur</h2><p>Impossible de charger le catalogue.</p></div>'; };
-  document.head.appendChild(s);
+const s = document.createElement('script');
+s.src = 'data.js?t=' + Date.now();
+s.onload = () => fetch('configs.json?t='+Date.now())
+  .then(r=>r.ok?r.json():{actives:[]}).catch(()=>({actives:[]}))
+  .then(j=>init(j.actives||[]));
+s.onerror = () => document.getElementById('gateway').innerHTML =
+  '<div class="error-box">Impossible de charger l\'offre.</div>';
+document.head.appendChild(s);
 
-function initGateway() {
-  if (typeof initCountrySelector === "function") initCountrySelector();
-  const params = new URLSearchParams(location.search);
-  const refId = params.get("ref");
-  const isReturn = params.get("return") === "1";
-  const found = findOfferById(refId);
-  const root = document.getElementById("gateway");
+function init(actives){
+  const q = new URLSearchParams(location.search);
+  const cfg = actives.find(c=>c.id===q.get('cfg'));
+  const comp = cfg && (cfg.components||[]).find(p=>p.id===q.get('c'));
+  const root = document.getElementById('gateway');
+  const retour = q.get('return')==='1';
 
-  const storageKey = id => "cpc_step1_" + id;
-
-  function renderError() {
-    root.innerHTML = `
-      <div class="error-box">
-        <h2>Lien invalide</h2>
-        <p>Cette offre n'existe pas ou n'est plus disponible.</p>
-        <a class="btn secondary" href="index.html">Retour à l'accueil</a>
-      </div>`;
+  if (!comp) {
+    root.innerHTML = `<div class="error-box"><h2>Lien invalide</h2>
+      <p>Cette offre n'existe plus.</p><a class="btn secondary" href="index.html">Retour à l'accueil</a></div>`;
+    return;
   }
 
-  function summary(offer, component) {
-    return `
-      <div class="product-summary">
-        <div class="label">${component.category}</div>
-        <div class="value">${component.name}</div>
-        <div class="label" style="margin-top:8px">Marchand</div>
-        <div class="value">${flagSVG(offerMerchant(offer).flag)} ${offerMerchant(offer).name} — ${offer.price} €</div>
-      </div>`;
-  }
+  const M = comp.m ? getMerchant(comp.m) : null;
+  const resume = `
+    <div class="product-summary">
+      <div class="label">${comp.category||''}</div>
+      <div class="value">${comp.name||''}</div>
+      <div class="label" style="margin-top:8px">Boutique</div>
+      <div class="value">${M?flagSVG(M.flag)+' '+M.name:'—'} — ${fmtMoney((comp.price||0)+(comp.shipping||0))}</div>
+    </div>`;
 
-  function renderStep1(offer, component) {
+  const cle = 'cpc_step1_' + comp.id;
+  const type = comp.linkType || 'direct';
+
+  // lien direct ou affilié : un seul clic
+  if (type !== 'passerelle') {
     root.innerHTML = `
       <div class="gateway-box">
-        <div class="step-indicator"><div class="dot active"></div><div class="dot"></div></div>
-        <div class="icon">⚠️</div>
+        <div class="icon">➡️</div>
         <h1>Vous allez être redirigé</h1>
-        <p>Ce composant provient d'un partenaire. Avant d'accéder à la fiche produit, vous allez transiter par une page intermédiaire. Revenez ensuite ici pour accéder directement au produit.</p>
-        ${summary(offer, component)}
-        <button class="btn btn-continue" id="go-step1">Continuer</button>
+        <p>Vous allez rejoindre la boutique pour consulter cette offre.</p>
+        ${resume}
+        <button class="btn btn-continue" id="go">Continuer vers ${M?M.name:'la boutique'}</button>
       </div>`;
-    document.getElementById("go-step1").addEventListener("click", () => {
-      localStorage.setItem(storageKey(offer.id), "1");
-      const target = offer.lockerUrl && offer.lockerUrl.trim() !== "" ? offer.lockerUrl : null;
-      if (!target) {
-        alert("Lien passerelle non configuré pour cette offre (voir data.js) — redirection directe vers le produit.");
-        window.location.href = offer.url; return;
-      }
-      window.location.href = target;
-    });
+    document.getElementById('go').onclick = () => location.href = offerFinalUrl(comp);
+    return;
   }
 
-  function renderStep2(offer, component) {
+  // passerelle rémunérée : deux étapes
+  const fait = localStorage.getItem(cle)==='1';
+  if (fait || retour) {
     root.innerHTML = `
       <div class="gateway-box">
         <div class="step-indicator"><div class="dot done"></div><div class="dot active"></div></div>
         <div class="icon">✅</div>
         <h1>Merci ! Vous pouvez continuer</h1>
         <p>Cliquez ci-dessous pour accéder à la fiche produit.</p>
-        ${summary(offer, component)}
-        <button class="btn btn-continue" id="go-step2">Accéder au produit</button>
+        ${resume}
+        <button class="btn btn-continue" id="go2">Accéder au produit</button>
       </div>`;
-    document.getElementById("go-step2").addEventListener("click", () => {
-      localStorage.removeItem(storageKey(offer.id));
-      window.location.href = offer.url;
-    });
-  }
-
-  function renderAffiliateDirect(offer, component) {
+    document.getElementById('go2').onclick = () => {
+      localStorage.removeItem(cle);
+      location.href = comp.url;
+    };
+  } else {
     root.innerHTML = `
       <div class="gateway-box">
-        <div class="icon">➡️</div>
+        <div class="step-indicator"><div class="dot active"></div><div class="dot"></div></div>
+        <div class="icon">⚠️</div>
         <h1>Vous allez être redirigé</h1>
-        <p>Vous allez être redirigé vers notre partenaire pour cette offre.</p>
-        ${summary(offer, component)}
-        <button class="btn btn-continue" id="go-affiliate">Continuer vers ${offerMerchant(offer).name}</button>
+        <p>Avant d'accéder à la fiche produit, vous allez passer par une page intermédiaire.
+           Revenez ensuite ici pour accéder directement au produit.</p>
+        ${resume}
+        <button class="btn btn-continue" id="go1">Continuer</button>
       </div>`;
-    document.getElementById("go-affiliate").addEventListener("click", () => {
-      const target = offer.affiliateUrl && offer.affiliateUrl.trim() !== "" ? offer.affiliateUrl : offer.url;
-      window.location.href = target;
-    });
-  }
-
-  if (!found) { renderError(); return; }
-  const { offer, component } = found;
-
-  if (offer.affiliate) {
-    renderAffiliateDirect(offer, component);
-  } else {
-    const step1Done = localStorage.getItem(storageKey(offer.id)) === "1";
-    if (step1Done || isReturn) renderStep2(offer, component);
-    else renderStep1(offer, component);
+    document.getElementById('go1').onclick = () => {
+      localStorage.setItem(cle,'1');
+      if (comp.lockerUrl && comp.lockerUrl.trim()) location.href = comp.lockerUrl;
+      else location.href = comp.url;
+    };
   }
 }
 </script>

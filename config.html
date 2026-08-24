@@ -4,19 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-
-<title>Détail config — ConfigPC</title>
-<link rel="stylesheet" href="style.css?v=11">
+<title>Détail de la config — ConfigPC</title>
+<link rel="stylesheet" href="style.css?v=20">
 </head>
 <body>
 <header class="site">
   <a class="logo" href="index.html"><img class="logo-img" src="logo.png" alt="ConfigPC">Config<span>PC</span></a>
-  <nav class="mainnav">
-    <a href="index.html" class="navlink" data-p="index">Configs</a>
-    <a href="compare.html" class="navlink" data-p="compare">Comparateur</a>
-  </nav>
   <div class="tag">Configs mises à jour régulièrement</div>
 </header>
 
@@ -29,138 +22,102 @@
   © <span id="year"></span> ConfigPC — <a href="index.html">Accueil</a>
 </footer>
 
-<script src="ui.js?v=11"></script>
+<script src="ui.js?v=20"></script>
 <script>
-  const s = document.createElement('script');
-  s.src = 'data.js?t=' + Date.now();
-  s.onload = initConfig;
-  s.onerror = () => { document.getElementById('content').innerHTML =
-    '<div class="error-box"><h2>Erreur</h2><p>Impossible de charger le catalogue (data.js).</p></div>'; };
-  document.head.appendChild(s);
+const s = document.createElement('script');
+s.src = 'data.js?t=' + Date.now();
+s.onload = () => fetch('configs.json?t='+Date.now())
+  .then(r=>r.ok?r.json():{actives:[]}).catch(()=>({actives:[]}))
+  .then(j=>init(j.actives||[]));
+s.onerror = () => document.getElementById('content').innerHTML =
+  '<div class="error-box"><h2>Erreur</h2><p>Impossible de charger la configuration.</p></div>';
+document.head.appendChild(s);
 
-  function initConfig() {
-    document.getElementById("year").textContent = new Date().getFullYear();
-    initCountrySelector();
-    const STOCK = { ok:{txt:"En stock",cls:"stock-ok"}, low:{txt:"Stock faible",cls:"stock-low"}, out:{txt:"Épuisé",cls:"stock-out"} };
-    const params = new URLSearchParams(location.search);
-    const cfg = CONFIGS.find(c => c.id === params.get("id"));
-    const content = document.getElementById("content");
+const STOCK = { ok:{txt:"En stock",cls:"stock-ok"}, low:{txt:"Stock faible",cls:"stock-low"}, out:{txt:"Épuisé",cls:"stock-out"} };
 
-    function offerRow(offer, isBest) {
-      const totalTxt = fmtOffer(offer);
-      const M = offerMerchant(offer);
-      const flag = flagSVG(M.flag);
-      const portTxt = offer.shipping > 0 ? `+ ${offer.shipping}€ port` : "port offert";
-      const stock = offer.stock && STOCK[offer.stock] ? `<span class="stock-badge ${STOCK[offer.stock].cls}">${STOCK[offer.stock].txt}</span>` : "";
-      const promo = (offer.promo && offer.promo.active) ? `<span class="promo-badge">🔥 Promo${offer.promo.oldPrice ? " −"+fmtMoney(offer.promo.oldPrice - offer.price, offerCurrency(offer)) : ""}</span>` : "";
-      const oldPrice = (offer.promo && offer.promo.active && offer.promo.oldPrice) ? `<span class="old-price">${fmtMoney(offer.promo.oldPrice, offerCurrency(offer))}</span>` : "";
-      const promoLine = (offer.promo && offer.promo.active) ? `<div class="promo-line">${promo}<span class="countdown" data-end="${offer.promo.endDate||''}"></span></div>` : "";
-      return `
-        <div class="offer-line ${isBest ? "best" : ""}">
-          <div class="offer-merchant">
-            ${isBest ? '<span class="best-tag">Le moins cher</span>' : ''}
-            <span class="m-name">${flag}${M.name}</span>
-            <span class="m-sub">${portTxt} ${stock}</span>
-            ${promoLine}
-            ${M.warn ? `<div class="merchant-warn">⚠ ${M.warn}</div>` : ""}
-          </div>
-          <div class="offer-right">
-            <div class="offer-prices">${oldPrice}<span class="offer-total">${totalTxt}</span></div>
-            <a class="btn" href="gateway.html?ref=${encodeURIComponent(offer.id)}">Voir l'offre</a>
-          </div>
-        </div>`;
-    }
+function init(actives){
+  document.getElementById("year").textContent = new Date().getFullYear();
+  const id = new URLSearchParams(location.search).get('id');
+  const cfg = actives.find(c=>c.id===id);
+  const content = document.getElementById('content');
 
-    if (!cfg) { content.innerHTML = `<div class="error-box"><h2>Config introuvable</h2><p>Retourne à l'accueil.</p></div>`; return; }
+  if (!cfg || configExpiree(cfg)) {
+    content.innerHTML = `<div class="error-box">
+      <h2>${cfg?'Cette configuration n\'est plus disponible':'Configuration introuvable'}</h2>
+      <p>${cfg?'Son offre est arrivée à échéance.':'Elle a peut-être été retirée.'}</p>
+      <a class="btn secondary" href="index.html">Voir les configs en cours</a></div>`;
+    return;
+  }
 
-    const totalCfg = configTotalText(cfg);
-    content.innerHTML = `
-      ${countryNotice()}
-      <div class="config-header reveal">
-        <div><h1>${cfg.name}</h1><div class="sub">${cfg.description || ""}</div></div>
-        <div class="total-wrap"><div class="total-label">Total au meilleur prix</div><div class="config-total">${totalCfg}</div></div>
+  const L = getLabel(cfg.label), T = getTier(cfg.tier);
+  content.innerHTML = `
+    ${L?`<div class="detail-label ${L.flocons?'snow':''}" style="background:${L.bg};color:${L.fg};border-color:${L.bord}">
+          ${L.deco?`<span class="deco">${L.deco}</span>`:''}${L.nom}</div>`:''}
+    <div class="config-header reveal">
+      <div>
+        ${T?`<span class="tier-badge" style="--tc:${T.couleur}">${T.nom}</span>`:''}
+        <h1>${cfg.name}</h1>
+        <div class="sub">${cfg.description||''}</div>
+        ${cfg.expire?`<div class="countdown-line big" data-end="${cfg.expire}"></div>`:''}
       </div>
-      <div class="section-label">Composants — cliquez sur "Comparer" pour voir tous les marchands</div>
-      <div id="components"></div>`;
+      <div class="total-wrap">
+        <div class="total-label">Total de la config</div>
+        <div class="config-total">${configTotalText(cfg)}</div>
+      </div>
+    </div>
+    <div class="section-label">Les composants</div>
+    <div id="components"></div>`;
 
-    const compsEl = document.getElementById("components");
-    cfg.components.forEach((comp, i) => {
-      const offers = sortedOffers(comp);
-      const best = offers[0];
-      if (!best) {
-        const none = document.createElement("div");
-        none.className = "component-card reveal unavailable";
-        none.innerHTML = `
-          <div class="component-head">
-            <div class="component-info">
-              <div class="ico">${categoryIcon(comp.category)}</div>
-              <div>
-                <div class="category">${comp.category}</div>
-                <div class="name">${comp.name}</div>
-                <div class="best-inline">Aucun marchand ne livre ce produit dans votre pays</div>
-              </div>
+  const box = document.getElementById('components');
+  (cfg.components||[]).forEach((p,i)=>{
+    const M = p.m ? getMerchant(p.m) : null;
+    const st = p.stock && STOCK[p.stock] ? `<span class="stock-badge ${STOCK[p.stock].cls}">${STOCK[p.stock].txt}</span>` : '';
+    const port = p.shipping>0 ? `+ ${fmtMoney(p.shipping)} de port` : 'port offert';
+    const card = document.createElement('div');
+    card.className = 'component-card reveal';
+    card.style.animationDelay = (0.05*i)+'s';
+    card.innerHTML = `
+      <div class="component-head">
+        <div class="component-info">
+          <div class="ico">${categoryIcon(p.category)}</div>
+          <div>
+            <div class="category">${p.category||''}${(p.qty||1)>1?` · ×${p.qty}`:''}</div>
+            <div class="name">${p.name||'—'}</div>
+            ${p.spec?`<div class="spec-line">${p.spec}</div>`:''}
+            <div class="best-inline">
+              ${M?`${flagSVG(M.flag)} <strong>${M.name}</strong>`:''}
+              <span class="port">${port}</span> ${st}
             </div>
-          </div>`;
-        compsEl.appendChild(none);
-        return;
-      }
-      const img = comp.image
-        ? `<img class="comp-img" src="${comp.image}" alt="${comp.name}" loading="lazy" onerror="this.outerHTML='<div class=&quot;ico&quot;>'+categoryIcon('${comp.category}')+'</div>'">`
-        : `<div class="ico">${categoryIcon(comp.category)}</div>`;
-
-      const card = document.createElement("div");
-      card.className = "component-card reveal";
-      card.style.animationDelay = (0.05 * i) + "s";
-      card.innerHTML = `
-        <div class="component-head">
-          <div class="component-info">
-            ${img}
-            <div>
-              <div class="category">${comp.category}</div>
-              <div class="name">${comp.name}</div>
-              <div class="best-inline">Dès <strong>${fmtOffer(best)}</strong> ${flagSVG(offerMerchant(best).flag)} ${offerMerchant(best).name} · ${offers.length} offre${offers.length>1?"s":""}</div>
-            </div>
-          </div>
-          <div class="head-right">
-            <a class="btn" href="gateway.html?ref=${encodeURIComponent(best.id)}">Voir l'offre</a>
-            ${offers.length>1 ? `<button class="compare-toggle">Comparer ▾</button>` : ""}
+            ${p.note?`<div class="comp-note">💬 ${p.note}</div>`:''}
+            ${M&&M.warn?`<div class="merchant-warn">⚠ ${M.warn}</div>`:''}
           </div>
         </div>
-        <div class="offers-panel">${offers.map((o,idx)=>offerRow(o, idx===0)).join("")}</div>`;
-      compsEl.appendChild(card);
-    });
+        <div class="head-right">
+          <div class="offer-prices"><span class="offer-total">${fmtOffer(p)}</span></div>
+          ${p.url?`<a class="btn" href="gateway.html?cfg=${encodeURIComponent(cfg.id)}&c=${encodeURIComponent(p.id)}">Voir l'offre</a>`:''}
+        </div>
+      </div>`;
+    box.appendChild(card);
+  });
 
-    document.querySelectorAll(".compare-toggle").forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const panel = btn.closest(".component-card").querySelector(".offers-panel");
-        const open = panel.classList.toggle("open");
-        btn.textContent = open ? "Réduire ▴" : "Comparer ▾";
-      });
-    });
+  revealOnScroll();
+  minuteurs();
+}
 
-    revealOnScroll();
-    startCountdowns();
-  }
-
-  function startCountdowns() {
-    const els = [...document.querySelectorAll(".countdown[data-end]")].filter(e => e.dataset.end);
-    if (!els.length) return;
-    function tick() {
-      const now = Date.now();
-      els.forEach(el => {
-        const end = new Date(el.dataset.end).getTime();
-        let diff = end - now;
-        if (isNaN(end)) { el.textContent = ""; return; }
-        if (diff <= 0) { el.textContent = "· promo terminée"; return; }
-        const d = Math.floor(diff/86400000); diff -= d*86400000;
-        const h = Math.floor(diff/3600000); diff -= h*3600000;
-        const m = Math.floor(diff/60000);
-        el.textContent = `· fin dans ${d}j ${h}h ${m}m`;
-      });
-    }
-    tick(); setInterval(tick, 30000);
-  }
+function minuteurs(){
+  const els=[...document.querySelectorAll('.countdown-line[data-end]')].filter(e=>e.dataset.end);
+  if(!els.length) return;
+  const tick=()=>els.forEach(el=>{
+    const end=new Date(el.dataset.end).getTime(); let d=end-Date.now();
+    if(isNaN(end)){el.textContent='';return;}
+    if(d<=0){el.textContent='⏱ offre terminée';return;}
+    const j=Math.floor(d/86400000); d-=j*86400000;
+    const h=Math.floor(d/3600000); d-=h*3600000;
+    const m=Math.floor(d/60000);
+    el.innerHTML = `⏱ valable encore <strong>${j>0?j+'j ':''}${h}h ${m}m</strong>`;
+  });
+  tick(); setInterval(tick,30000);
+}
 </script>
 </body>
 </html>

@@ -1,177 +1,105 @@
 /**
  * ==========================================================================
- *  CONFIGPC — MARCHANDS + CONFIGS
- *  Tu peux tout modifier ici, ou utiliser la page admin.html (plus simple).
+ *  CONFIGPC — MARCHANDS & MOTEUR      (site français uniquement)
  * ==========================================================================
+ *  Les configs ne sont plus ici : elles vivent dans configs.json,
+ *  que tu génères depuis admin.html.
  */
 
-/* Taux de change utilisé UNIQUEMENT pour comparer des prix de devises
-   différentes. À ajuster de temps en temps (valeur approximative). */
-const EUR_TO_CHF = 0.94;
-
-/* -------------------- ANNUAIRE DES BOUTIQUES --------------------
-   Une offre = UNE boutique nationale.
-   flag = drapeau de la BOUTIQUE (alternate.fr = drapeau français)
-   shipsTo = pays d'où l'on peut réellement commander
-   cur = devise de la boutique                                      */
+/* -------------------- LES MARCHANDS --------------------
+   flag = drapeau de la BOUTIQUE sur laquelle on commande
+          (alternate.fr → drapeau français, même si la société est allemande)
+   warn = avertissement affiché sous l'offre                          */
 const MERCHANTS = {
-  /* ---- FRANCE ---- */
-  "amazon-fr":      { name:"Amazon.fr",        flag:"fr", cur:"EUR", shipsTo:["fr"],      warn:"Vérifier que l'article est vendu et expédié par Amazon." },
-  "ldlc-fr":        { name:"LDLC",             flag:"fr", cur:"EUR", shipsTo:["fr"] },
-  "topachat-fr":    { name:"TopAchat",         flag:"fr", cur:"EUR", shipsTo:["fr","be"], warn:"Belgique : uniquement les articles vendus ET expédiés par TopAchat." },
-  "grosbill-fr":    { name:"Grosbill",         flag:"fr", cur:"EUR", shipsTo:["fr","be"] },
-  "materielnet-fr": { name:"Materiel.net",     flag:"fr", cur:"EUR", shipsTo:["fr","be"], warn:"Belgique : articles volumineux (boîtiers, écrans) non expédiables." },
-  "rdc-fr":         { name:"Rue du Commerce",  flag:"fr", cur:"EUR", shipsTo:["fr","be"] },
-  "pccomp-fr":      { name:"PcComponentes.fr", flag:"fr", cur:"EUR", shipsTo:["fr"] },
-  "alternate-fr":   { name:"Alternate.fr",     flag:"fr", cur:"EUR", shipsTo:["fr"] },
-  "galaxus-fr":     { name:"Galaxus.fr",       flag:"fr", cur:"EUR", shipsTo:["fr"] },
-  "cdiscount-fr":   { name:"Cdiscount",        flag:"fr", cur:"EUR", shipsTo:["fr"] },
+  /* --- Boutiques françaises --- */
+  "amazon-fr":      { name:"Amazon.fr",        flag:"fr", warn:"Vérifier que l'article est vendu et expédié par Amazon." },
+  "ldlc-fr":        { name:"LDLC",             flag:"fr" },
+  "topachat-fr":    { name:"TopAchat",         flag:"fr" },
+  "materielnet-fr": { name:"Materiel.net",     flag:"fr" },
+  "grosbill-fr":    { name:"Grosbill",         flag:"fr" },
+  "rdc-fr":         { name:"Rue du Commerce",  flag:"fr" },
+  "cybertek-fr":    { name:"Cybertek",         flag:"fr" },
+  "pccomp-fr":      { name:"PcComponentes.fr", flag:"fr" },
+  "alternate-fr":   { name:"Alternate.fr",     flag:"fr" },
+  "galaxus-fr":     { name:"Galaxus.fr",       flag:"fr" },
+  "cdiscount-fr":   { name:"Cdiscount",        flag:"fr" },
+  "fnac-fr":        { name:"Fnac",             flag:"fr", warn:"Attention aux offres marketplace, différentes du stock Fnac." },
+  "rakuten-fr":     { name:"Rakuten",          flag:"fr", warn:"Marketplace : livraison et garantie dépendent du vendeur." },
+  "joybuy-fr":      { name:"JoyBuy",           flag:"fr", warn:"Marketplace européenne de JD.com — vérifier le vendeur." },
+  "1fodiscount-fr": { name:"1FODiscount",      flag:"fr" },
+  "topbiz-fr":      { name:"Topbiz",           flag:"fr" },
+  "infomax-fr":     { name:"Infomax Paris",    flag:"fr" },
+  "reichelt-fr":    { name:"Reichelt",         flag:"fr", warn:"Expédition depuis l'Allemagne." },
+  "mrwatercooling-fr": { name:"Mr Watercooling", flag:"fr" },
+  "aliexpress-fr":  { name:"AliExpress",       flag:"fr", warn:"Garantie et retours compliqués (SAV en Chine). Méfiance sur les contrefaçons (RAM, SSD, cartes graphiques)." },
 
-  /* ---- BELGIQUE ---- */
-  "amazon-be":      { name:"Amazon.com.be",    flag:"be", cur:"EUR", shipsTo:["be"],      warn:"Vérifier que l'article est vendu et expédié par Amazon." },
-  "ldlc-be":        { name:"LDLC Belgique",    flag:"be", cur:"EUR", shipsTo:["be"] },
-  "alternate-be":   { name:"Alternate.be",     flag:"be", cur:"EUR", shipsTo:["be"] },
-  "coolblue-be":    { name:"Coolblue.be",      flag:"be", cur:"EUR", shipsTo:["be"] },
-  "vandenborre-be": { name:"Vanden Borre",     flag:"be", cur:"EUR", shipsTo:["be"] },
-  "galaxus-be":     { name:"Galaxus.be",       flag:"be", cur:"EUR", shipsTo:["be"] },
-
-  /* ---- SUISSE (prix en francs suisses) ---- */
-  "digitec-ch":       { name:"Digitec",       flag:"ch", cur:"CHF", shipsTo:["ch"] },
-  "galaxus-ch":       { name:"Galaxus.ch",    flag:"ch", cur:"CHF", shipsTo:["ch"] },
-  "brack-ch":         { name:"Brack.ch",      flag:"ch", cur:"CHF", shipsTo:["ch"] },
-  "ldlc-ch":          { name:"LDLC Suisse",   flag:"ch", cur:"CHF", shipsTo:["ch"], warn:"TVA suisse incluse — aucune taxe supplémentaire en douane." },
-  "alternate-ch":     { name:"Alternate.ch",  flag:"ch", cur:"CHF", shipsTo:["ch"], warn:"Dédouanement inclus + forfait 16 CHF par colis." },
-  "interdiscount-ch": { name:"Interdiscount", flag:"ch", cur:"CHF", shipsTo:["ch"] },
-
-
-
-  "mrwatercooling-fr": { name:"Mr Watercooling", flag:"fr", cur:"EUR", shipsTo:["fr"] },
-
-  /* ---- Marketplaces & enseignes FRANCE ---- */
-  "rakuten-fr":     { name:"Rakuten", flag:"fr", cur:"EUR", shipsTo:["fr","be"],
-                      warn:"Marketplace : la livraison et la garantie dépendent du vendeur." },
-  "joybuy-fr":      { name:"JoyBuy", flag:"fr", cur:"EUR", shipsTo:["fr"],
-                      warn:"Marketplace européenne de JD.com — vérifier le vendeur et les délais." },
-  "cybertek-fr":    { name:"Cybertek", flag:"fr", cur:"EUR", shipsTo:["fr","be"],
-                      warn:"Belgique : uniquement les produits vendus et expédiés par Cybertek." },
-  "fnac-fr":        { name:"Fnac", flag:"fr", cur:"EUR", shipsTo:["fr"],
-                      warn:"Attention aux offres marketplace, différentes du stock Fnac." },
-  "reichelt-fr":    { name:"Reichelt", flag:"fr", cur:"EUR", shipsTo:["fr"],
-                      warn:"Expédition depuis l'Allemagne." },
-  "infomax-fr":     { name:"Infomax Paris", flag:"fr", cur:"EUR", shipsTo:["fr"] },
-  "1fodiscount-fr": { name:"1FODiscount", flag:"fr", cur:"EUR", shipsTo:["fr","be"] },
-  "topbiz-fr":      { name:"Topbiz", flag:"fr", cur:"EUR", shipsTo:["fr"] },
-
-  /* ---- Enseignes BELGIQUE ---- */
-  "joybuy-be":      { name:"JoyBuy", flag:"be", cur:"EUR", shipsTo:["be"],
-                      warn:"Marketplace européenne de JD.com — vérifier le vendeur et les délais." },
-  "fnac-be":        { name:"Fnac.be", flag:"be", cur:"EUR", shipsTo:["be"] },
-  "compumsa-be":    { name:"CompuMSA", flag:"be", cur:"EUR", shipsTo:["fr","be"] },
-
-  /* ---- Enseignes SUISSE ---- */
-  "fnac-ch":        { name:"Fnac.ch", flag:"ch", cur:"CHF", shipsTo:["ch"] },
-  "reichelt-ch":    { name:"Reichelt", flag:"ch", cur:"CHF", shipsTo:["ch"],
-                      warn:"Boutique suisse : prix en CHF, douane affichée à la commande." },
-  "rakuten-ch":     { name:"Rakuten", flag:"fr", cur:"EUR", shipsTo:["ch"],
-                      warn:"Hors UE : douane et TVA suisse à la charge de l'acheteur, selon le vendeur." },
-
-  /* ---- Allemagne livrant dans les 3 pays ---- */
-  "caseking-de":    { name:"Caseking", flag:"de", cur:"EUR", shipsTo:["fr","be","ch"],
-                      warn:"Expédition depuis l'Allemagne. Vers la Suisse : douane et TVA suisse en supplément." },
-
-  /* ---- ALIEXPRESS (marketplace mondiale, livre dans les 3 pays) ---- */
-  "aliexpress-fr":  { name:"AliExpress", flag:"fr", cur:"EUR", shipsTo:["fr"],
-                      warn:"Garantie et retours compliqués (SAV en Chine) — méfiance sur les contrefaçons (RAM, SSD, cartes graphiques). Au-delà de 150 €, des droits de douane peuvent s'ajouter." },
-  "aliexpress-be":  { name:"AliExpress", flag:"be", cur:"EUR", shipsTo:["be"],
-                      warn:"Garantie et retours compliqués (SAV en Chine) — méfiance sur les contrefaçons. Au-delà de 150 €, des droits de douane peuvent s'ajouter." },
-  "aliexpress-ch":  { name:"AliExpress", flag:"ch", cur:"CHF", shipsTo:["ch"],
-                      warn:"Hors UE : TVA suisse et frais de dédouanement à l'import. Garantie et retours compliqués (SAV en Chine)." },
-
-  /* ---- Amazon UE livrant en Suisse (il n'existe pas d'amazon.ch) ---- */
-  "amazon-de-ch":   { name:"Amazon.de",  flag:"de", cur:"EUR", shipsTo:["ch"], warn:"Hors UE : douane et TVA suisse ajoutées au paiement." },
-  "amazon-fr-ch":   { name:"Amazon.fr",  flag:"fr", cur:"EUR", shipsTo:["ch"], warn:"Hors UE : douane et TVA suisse ajoutées au paiement." }
+  /* --- Boutiques étrangères qui livrent en France --- */
+  "caseking-de":    { name:"Caseking",         flag:"de", warn:"Expédition depuis l'Allemagne." },
+  "compumsa-be":    { name:"CompuMSA",         flag:"be", warn:"Expédition depuis la Belgique." }
 };
 
-/* NE PAS UTILISER (vérifié 2026) : Steg Electronics (faillite 2024),
-   Microspot (fermé, → Interdiscount), Cdiscount en Belgique (non confirmé). */
+/* ==================== LES ÉTIQUETTES ====================
+   Chaque étiquette a ses couleurs et sa décoration.
+   Tu peux en ajouter : copie un bloc et change les valeurs.       */
+const LABELS = {
+  "promo":      { nom:"Promotion",         deco:"",    bg:"#e11d2e", fg:"#ffffff", bord:"#ff6b7a" },
+  "noel":       { nom:"Spécial Noël",      deco:"🎄❄️", bg:"linear-gradient(135deg,#0f7a3d,#c81d25)", fg:"#ffffff", bord:"#ffd700", flocons:true },
+  "halloween":  { nom:"Spécial Halloween", deco:"🎃🕸️", bg:"linear-gradient(135deg,#ff6a00,#4a1d7a)", fg:"#ffffff", bord:"#ff9a3c" },
+  "special":    { nom:"Édition spéciale",  deco:"✨",   bg:"linear-gradient(135deg,#7c5cff,#c9a227)", fg:"#ffffff", bord:"#ffd700" },
+  "blackfriday":{ nom:"Black Friday",      deco:"🏷️",  bg:"linear-gradient(135deg,#111,#333)", fg:"#ffd700", bord:"#ffd700" },
+  "soldes":     { nom:"Soldes",            deco:"🔖",   bg:"linear-gradient(135deg,#0ea5e9,#2563eb)", fg:"#ffffff", bord:"#7dd3fc" },
+  "rentree":    { nom:"Spécial Rentrée",   deco:"🎒",   bg:"linear-gradient(135deg,#b45309,#f59e0b)", fg:"#ffffff", bord:"#fcd34d" },
+  "ete":        { nom:"Spécial Été",       deco:"☀️🌴", bg:"linear-gradient(135deg,#f59e0b,#06b6d4)", fg:"#ffffff", bord:"#fde68a" },
+  "nouveaute":  { nom:"Nouveauté",         deco:"🆕",   bg:"linear-gradient(135deg,#059669,#10b981)", fg:"#ffffff", bord:"#6ee7b7" },
+  "coupdecoeur":{ nom:"Coup de cœur",      deco:"❤️",   bg:"linear-gradient(135deg,#be123c,#f43f5e)", fg:"#ffffff", bord:"#fda4af" }
+};
 
-const COUNTRY_CUR = { fr:"EUR", be:"EUR", ch:"CHF" };
+/* ==================== LES GAMMES ==================== */
+const TIERS = {
+  "bas":     { nom:"Bas de gamme",     court:"Bas de gamme",     couleur:"#38bdf8" },
+  "milieu":  { nom:"Milieu de gamme",  court:"Milieu de gamme",  couleur:"#a78bfa" },
+  "haut":    { nom:"Haut de gamme",    court:"Haut de gamme",    couleur:"#fbbf24" }
+};
 
-/* ======================= TES CONFIGS =======================
-   Vide pour l'instant : ajoute tes configs depuis admin.html.
-   (l'exemple à 1500 € a été supprimé)                          */
-const CONFIGS = [];
+/* ==================== TYPES DE LIEN (monétisation) ====================
+   direct    : lien normal vers le produit, tu ne gagnes rien
+   affilie   : lien d'affiliation, la commission est comptée au clic
+   passerelle: lien rémunéré (clk.sh…), le visiteur passe par une page
+               intermédiaire au premier clic, puis accède au produit    */
+const LINK_TYPES = {
+  "direct":     { nom:"Lien direct (aucun gain)",        ico:"↗" },
+  "affilie":    { nom:"Lien affilié (commission)",       ico:"💶" },
+  "passerelle": { nom:"Passerelle rémunérée (clk.sh…)",  ico:"🔁" }
+};
 
 /* ===================== moteur (ne pas modifier) ===================== */
 function getMerchant(k){ return MERCHANTS[k] || null; }
-
-function currentCountry(){
-  try { return (window.CONFIGPC_COUNTRY || localStorage.getItem("configpc_country") || "fr"); }
-  catch(e){ return "fr"; }
-}
-function countryCurrency(c){ return COUNTRY_CUR[c || currentCountry()] || "EUR"; }
+function getLabel(k){ return LABELS[k] || null; }
+function getTier(k){ return TIERS[k] || null; }
 
 function offerMerchant(o){
-  const m = getMerchant(o.m);
-  if (m) return m;
-  return { name:o.merchant || o.m || "Marchand", flag:o.country || "", cur:"EUR", shipsTo:o.shipsTo || [] };
+  return getMerchant(o.m) || { name:o.m || "Marchand", flag:"fr" };
 }
-function offerCurrency(o){ return offerMerchant(o).cur || "EUR"; }
+function offerTotal(o){
+  return ((Number(o.price)||0) + (Number(o.shipping)||0)) * (Number(o.qty)||1);
+}
+function fmtMoney(v){ return Math.round(v) + " €"; }
+function fmtOffer(o){ return fmtMoney(offerTotal(o)); }
 
-function offerAvailable(o, country){
-  const c = country || currentCountry();
-  const ships = offerMerchant(o).shipsTo || [];
-  return !ships.length || ships.map(x=>String(x).toLowerCase()).includes(c);
+/* total d'une config = somme des composants (prix + port) × quantité */
+function configTotal(cfg){
+  return (cfg.components || []).reduce((s,c)=> s + offerTotal(c), 0);
 }
+function configTotalText(cfg){ return fmtMoney(configTotal(cfg)); }
 
-/* prix + port, dans la devise de la boutique */
-function offerTotal(o){ return (Number(o.price)||0) + (Number(o.shipping)||0); }
-
-/* conversion pour pouvoir comparer des devises différentes */
-function convert(amount, from, to){
-  if (from === to) return amount;
-  if (from === "EUR" && to === "CHF") return amount * EUR_TO_CHF;
-  if (from === "CHF" && to === "EUR") return amount / EUR_TO_CHF;
-  return amount;
+/* une config est-elle encore valable ? (timer) */
+function configExpiree(cfg){
+  if (!cfg.expire) return false;
+  const t = new Date(cfg.expire).getTime();
+  return !isNaN(t) && t <= Date.now();
 }
-/* total ramené à la devise du pays (sert au tri et au total) */
-function offerTotalIn(o, cur){
-  return convert(offerTotal(o), offerCurrency(o), cur || countryCurrency());
-}
-/* l'offre est-elle affichée dans une autre devise que celle du pays ? */
-function offerIsForeignCurrency(o, country){
-  return offerCurrency(o) !== countryCurrency(country);
-}
-
-function fmtMoney(v, cur){
-  const n = Math.round(v);
-  return cur === "CHF" ? (n + " CHF") : (n + " €");
-}
-/* prix affiché d'une offre, dans SA devise */
-function fmtOffer(o){ return fmtMoney(offerTotal(o), offerCurrency(o)); }
-
-function sortedOffers(comp, country){
-  const cur = countryCurrency(country);
-  return comp.offers
-    .filter(o => offerAvailable(o, country))
-    .sort((a,b) => offerTotalIn(a,cur) - offerTotalIn(b,cur));
-}
-function cheapestOffer(comp, country){ return sortedOffers(comp, country)[0]; }
-
-function configTotal(cfg, country){
-  const cur = countryCurrency(country);
-  return cfg.components.reduce((s,c)=>{
-    const o = cheapestOffer(c, country);
-    return s + (o ? offerTotalIn(o, cur) : 0);
-  }, 0);
-}
-function configTotalText(cfg, country){ return fmtMoney(configTotal(cfg,country), countryCurrency(country)); }
-function missingCount(cfg, country){ return cfg.components.filter(c=>!cheapestOffer(c,country)).length; }
-
-function findOfferById(id){
-  for (const cfg of CONFIGS)
-    for (const comp of cfg.components)
-      for (const o of comp.offers)
-        if (o.id === id) return { offer:o, component:comp, config:cfg };
-  return null;
+/* le lien réellement utilisé selon le type choisi */
+function offerFinalUrl(o){
+  if (o.linkType === "affilie" && o.affiliateUrl) return o.affiliateUrl;
+  return o.url || "";
 }
